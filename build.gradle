@@ -10,4 +10,8 @@ repositories {
 }
 
 dependencies {
+    implementation group: 'gov.nist.math', name: 'jama', version: '1.0.3'
+
+
+
 }
