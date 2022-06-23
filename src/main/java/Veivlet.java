@@ -8,12 +8,14 @@ import java.util.Random;
 
 public class Veivlet {
     public static void main(String[] args) throws IOException {
-        BufferedImage pic = ImageIO.read(new File("car.jpg"));
-        MassNoise(1,pic);
-        ImageIO.write(pic,"jpg",new File("noise.jpg"));
+        BufferedImage pic = ImageIO.read(new File("dom.bmp"));
+        BufferedImage OrigPic = pic;
+        MassNoise(5,pic);
+        ImageIO.write(pic,"bmp",new File("noise.bmp"));
         NormFactor(pic);
-        ImageIO.write(pic,"jpg",new File("norm.jpg"));
-        ImageIO.write(sobelOperator(pic),"jpg",new File("sobelCar.jpg"));
+        ImageIO.write(pic,"bmp",new File("norm.bmp"));
+        ImageIO.write(sobelOperator(pic),"bmp",new File("sobelDom.bmp"));
+        ImageIO.write(NormFactor(grab(RSchmX(ImageIO.read(new File("dom.bmp"))),RSchmY(ImageIO.read(new File("dom.bmp"))),ImageIO.read(new File("dom.bmp")))),"bmp",new File("test.bmp"));
     }
     public static BufferedImage MassNoise(int sigma, BufferedImage pic){
         Random rand = new Random();
@@ -64,48 +66,71 @@ public class Veivlet {
         return pic;
     }
     public static BufferedImage sobelOperator(BufferedImage pic){
-        int[][] MGx = {{1,0,-1},{2,0,-2},{1,0,-1}},
-                MGy = {{1,2,1},{0,0,0},{-1,-2,-1}},
-                matrix = new int[pic.getWidth()][pic.getWidth()];
-        Matrix realMatrix = new Matrix(pic.getWidth(),pic.getWidth()), A = realMatrix.copy();
+        int[][] MGx = {{1,0,-1},
+                    {2,0,-2},
+                    {1,0,-1}},
+                MGy = {{1,2,1},
+                        {0,0,0},
+                        {-1,-2,-1}},
+                matrix = new int[pic.getWidth()][pic.getWidth()],
+                picMatrix = new int[pic.getWidth()][pic.getHeight()];
         int GX = 0, GY = 0;
-        for (int i = 0; i < matrix.length; i++)for (int j = 0; j < matrix[i].length; j++)realMatrix.set(i,j, Math.abs(pic.getRGB(i,j)));
-        for (int i  = 1; i< pic.getHeight()-2; i++){
-            for (int j = 1; j < pic.getWidth()-2; j++) {
-                A.setMatrix(i-1,i+1,j-1,j+1, realMatrix);
-                for (int k = 0; k < MGx.length; k++)for (int l = 0; l < MGx[k].length; l++)GX += A.get(k,l)*MGx[k][l];
-                for (int k = 0; k < MGy.length; k++) for (int l = 0; l < MGy[k].length; l++)GY += A.get(k,l)*MGy[k][l];
-                int G = (int) Math.sqrt(Math.pow(GX,2)+Math.pow(GY,2));
-                pic.setRGB(i,j,G);
+        for (int i = 0; i < matrix.length; i++)for (int j = 0; j < matrix[i].length; j++)matrix[i][j] = Math.abs(pic.getRGB(i,j));
+        for (int iY  = 1; iY< pic.getHeight()-2; iY++){
+            for (int iX = 1; iX < pic.getWidth()-2; iX++) {
+                int[][] A = getSubMatrix(matrix,iY-1,iY+1,iX-1,iX+1);
+                for (int y = 0; y < 2; y++)for (int x = 0; x < 2; x++)GX += Math.abs(A[y][x]*MGx[y][x]);
+                for (int y = 0; y < 2; y++)for (int x = 0; x < 2; x++)GY += Math.abs(A[y][x]*MGy[y][x]);
+                int G = (int) Math.sqrt(Math.abs(Math.pow(GX,2))+Math.abs(Math.pow(GY,2)));
+                picMatrix[iY][iX] = G;
             }
         }
+        for (int i = 0; i < pic.getHeight(); i++)for (int j = 0; j < pic.getHeight(); j++)pic.setRGB(i,j,picMatrix[i][j]);
         return pic;
     }
     public static int[][] getSubMatrix(int[][] matrix, int firstRow, int destRow, int firstCol, int destCol){
         int[][] newMatrix = new int[destRow-firstRow+1][destCol-firstCol+1];
         for (int i = 0; i < newMatrix.length; i++, firstRow++) {
-            for (int j = 0; j < newMatrix[i].length; j++, firstCol++) {
-                newMatrix[i][j] = matrix[firstRow][firstCol];
+            int col = firstCol;
+            for (int j = 0; j < newMatrix[i].length; j++, col++) {
+                newMatrix[i][j] = matrix[firstRow][col];
             }
         }
         return newMatrix;
     }
-    int[][] multiplyMatrices(int[][] firstMatrix, int[][] secondMatrix) {
-        int[][] result = new int[firstMatrix.length][secondMatrix[0].length];
-
-        for (int row = 0; row < result.length; row++) {
-            for (int col = 0; col < result[row].length; col++) {
-                result[row][col] = multiplyMatricesCell(firstMatrix, secondMatrix, row, col);
+    public static BufferedImage grab(BufferedImage DifferentX, BufferedImage DifferentY, BufferedImage pic){
+        for (int x = 0; x < DifferentX.getWidth()-1; x++) {
+            for (int y = 0; y < DifferentY.getWidth()-1; y++) {
+                pic.setRGB(x,y,(int) Math.sqrt(Math.pow(DifferentX.getRGB(x,y),2)+Math.pow(DifferentY.getRGB(x,y),2)));
             }
         }
-
-        return result;
+        return pic;
     }
-    int multiplyMatricesCell(int[][] firstMatrix, int[][] secondMatrix, int row, int col) {
-        int cell = 0;
-        for (int i = 0; i < secondMatrix.length; i++) {
-            cell += firstMatrix[row][i] * secondMatrix[i][col];
+    public static BufferedImage RSchmX(BufferedImage pic){
+        for (int x = 1; x < pic.getHeight()-1; x++) {
+            for (int y = 1; y < pic.getWidth()-1; y++) {
+                pic.setRGB(y,x,pic.getRGB(y,x)-pic.getRGB(y,x-1));
+            }
         }
-        return cell;
+        return pic;
+    }
+    public static BufferedImage RSchmY(BufferedImage pic) {
+        for (int x = 1; x < pic.getHeight() - 1; x++) {
+            for (int y = 1; y < pic.getWidth() - 1; y++) {
+                pic.setRGB(y, x, pic.getRGB(y, x) - pic.getRGB(y-1, x));
+            }
+        }
+        return pic;
+    }
+    public static int dXDOG(BufferedImage pic){
+        int res = 0;
+        int Xdecomposition = (int) (pic.getHeight()/Math.log(2))-1, Xquantity = pic.getHeight();
+        for (int y = 0; y < pic.getWidth()-1; y++) {
+            for (int x = 0; x < pic.getWidth()-1; x++) {
+
+            }
+        }
+        // !!!ДОПИСАТЬ!!!
+        return res;
     }
 }
