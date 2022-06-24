@@ -1,5 +1,3 @@
-import Jama.Matrix;
-
 import javax.imageio.ImageIO;
 import java.awt.image.BufferedImage;
 import java.io.File;
@@ -9,7 +7,6 @@ import java.util.Random;
 public class Veivlet {
     public static void main(String[] args) throws IOException {
         BufferedImage pic = ImageIO.read(new File("dom.bmp"));
-        BufferedImage OrigPic = pic;
         MassNoise(5,pic);
         ImageIO.write(pic,"bmp",new File("noise.bmp"));
         NormFactor(pic);
@@ -19,13 +16,13 @@ public class Veivlet {
     }
     public static BufferedImage MassNoise(int sigma, BufferedImage pic){
         Random rand = new Random();
-        for (int i = 0; i < pic.getWidth(); i++)for (int j = 0; j < pic.getHeight(); j++) pic.setRGB(i,j, (int) (Math.abs(pic.getRGB(i,j)) + sigma*rand.nextGaussian()));
+        for (int i = 0; i < pic.getWidth(); i++)for (int j = 0; j < pic.getHeight(); j++) pic.setRGB(i,j, Math.abs((int) (pic.getRGB(i,j) + sigma*rand.nextGaussian())));
         return pic;
     }
     public static BufferedImage NormFactor(BufferedImage pic){
-        int min = Math.abs(pic.getRGB(0,0)), max = Math.abs(pic.getRGB(0,0));
-        for (int i = 0; i < pic.getWidth(); i++) for (int j = 0; j < pic.getHeight(); j++)if (Math.abs(pic.getRGB(i,j))<min)min = Math.abs(pic.getRGB(i,j));
-        for (int i = 0; i < pic.getWidth(); i++) for (int j = 0; j < pic.getHeight(); j++)if (Math.abs(pic.getRGB(i,j))>max)max = Math.abs(pic.getRGB(i,j));
+        int min = pic.getRGB(0,0), max = pic.getRGB(0,0);
+        for (int i = 0; i < pic.getWidth(); i++) for (int j = 0; j < pic.getHeight(); j++)if (pic.getRGB(i,j)<min)min = pic.getRGB(i,j);
+        for (int i = 0; i < pic.getWidth(); i++) for (int j = 0; j < pic.getHeight(); j++)if (pic.getRGB(i,j)>max)max = pic.getRGB(i,j);
         for (int i = 0; i < pic.getHeight(); i++) for (int j = 0; j < pic.getWidth(); j++) pic.setRGB(i,j,((pic.getRGB(i,j)-min)*254)/(max-min));
         return pic;
     }
@@ -74,15 +71,15 @@ public class Veivlet {
                         {-1,-2,-1}},
                 matrix = new int[pic.getWidth()][pic.getWidth()],
                 picMatrix = new int[pic.getWidth()][pic.getHeight()];
-        int GX = 0, GY = 0;
+
         for (int i = 0; i < matrix.length; i++)for (int j = 0; j < matrix[i].length; j++)matrix[i][j] = Math.abs(pic.getRGB(i,j));
         for (int iY  = 1; iY< pic.getHeight()-2; iY++){
             for (int iX = 1; iX < pic.getWidth()-2; iX++) {
+                int GX = 0, GY = 0;
                 int[][] A = getSubMatrix(matrix,iY-1,iY+1,iX-1,iX+1);
-                for (int y = 0; y < 2; y++)for (int x = 0; x < 2; x++)GX += Math.abs(A[y][x]*MGx[y][x]);
-                for (int y = 0; y < 2; y++)for (int x = 0; x < 2; x++)GY += Math.abs(A[y][x]*MGy[y][x]);
-                int G = (int) Math.sqrt(Math.abs(Math.pow(GX,2))+Math.abs(Math.pow(GY,2)));
-                picMatrix[iY][iX] = G;
+                for (int y = 0; y < 2; y++)for (int x = 0; x < 2; x++)GX += A[y][x]*MGx[y][x];
+                for (int y = 0; y < 2; y++)for (int x = 0; x < 2; x++)GY += A[y][x]*MGy[y][x];
+                picMatrix[iY][iX] = (int) Math.sqrt(Math.pow(GX,2)+(Math.pow(GY,2)));
             }
         }
         for (int i = 0; i < pic.getHeight(); i++)for (int j = 0; j < pic.getHeight(); j++)pic.setRGB(i,j,picMatrix[i][j]);
@@ -122,6 +119,7 @@ public class Veivlet {
         }
         return pic;
     }
+    //WRITE
     public static int dXDOG(BufferedImage pic){
         int res = 0;
         int Xdecomposition = (int) (pic.getHeight()/Math.log(2))-1, Xquantity = pic.getHeight();
@@ -130,7 +128,7 @@ public class Veivlet {
 
             }
         }
-        // !!!ДОПИСАТЬ!!!
+
         return res;
     }
 }
