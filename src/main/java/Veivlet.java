@@ -5,6 +5,28 @@ import java.io.IOException;
 import java.util.Random;
 
 public class Veivlet {
+    private BufferedImage image, noiseImg, normImg, sobelImg, GrabImg;
+    private String username = System.getProperty("user.name");
+    public Veivlet(String path) throws IOException {
+        File file = new File(path);
+        image = ImageIO.read(file);
+        noiseImg = MassNoise(5,image);
+        ImageIO.write(noiseImg,getFileExtension(file), new File("C:\\Users\\"+ username+"\\noise." + getFileExtension(file)));
+        normImg = NormFactor(noiseImg);
+        ImageIO.write(normImg,getFileExtension(file), new File("C:\\Users\\"+ username+"\\norm." + getFileExtension(file)));
+        sobelImg = sobelOperator(normImg);
+        ImageIO.write(sobelImg,getFileExtension(file), new File("C:\\Users\\"+ username+"\\Sobel." + getFileExtension(file)));
+        GrabImg = NormFactor(grab(RSchmX(ImageIO.read(file)),RSchmY(ImageIO.read(file)),ImageIO.read(file)));
+        ImageIO.write(GrabImg,getFileExtension(file), new File("C:\\Users\\"+ username+"\\test." + getFileExtension(file)));
+
+    }
+
+    private static String getFileExtension(File file) {
+        String fileName = file.getName();
+        if(fileName.lastIndexOf(".") != -1 && fileName.lastIndexOf(".") != 0)
+            return fileName.substring(fileName.lastIndexOf(".")+1);
+        else return "";
+    }
     public static void main(String[] args) throws IOException {
         BufferedImage pic = ImageIO.read(new File("dom.bmp"));
         MassNoise(5,pic);
@@ -13,6 +35,7 @@ public class Veivlet {
         ImageIO.write(pic,"bmp",new File("norm.bmp"));
         ImageIO.write(sobelOperator(pic),"bmp",new File("sobelDom.bmp"));
         ImageIO.write(NormFactor(grab(RSchmX(ImageIO.read(new File("dom.bmp"))),RSchmY(ImageIO.read(new File("dom.bmp"))),ImageIO.read(new File("dom.bmp")))),"bmp",new File("test.bmp"));
+
     }
     public static BufferedImage MassNoise(int sigma, BufferedImage pic){
         Random rand = new Random();
@@ -64,8 +87,8 @@ public class Veivlet {
     }
     public static BufferedImage sobelOperator(BufferedImage pic){
         int[][] MGx = {{1,0,-1},
-                    {2,0,-2},
-                    {1,0,-1}},
+                {2,0,-2},
+                {1,0,-1}},
                 MGy = {{1,2,1},
                         {0,0,0},
                         {-1,-2,-1}},
