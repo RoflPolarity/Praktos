@@ -46,7 +46,7 @@ public class Veivlet {
         int min = pic.getRGB(0,0), max = pic.getRGB(0,0);
         for (int i = 0; i < pic.getWidth(); i++) for (int j = 0; j < pic.getHeight(); j++)if (pic.getRGB(i,j)<min)min = pic.getRGB(i,j);
         for (int i = 0; i < pic.getWidth(); i++) for (int j = 0; j < pic.getHeight(); j++)if (pic.getRGB(i,j)>max)max = pic.getRGB(i,j);
-        for (int i = 0; i < pic.getHeight(); i++) for (int j = 0; j < pic.getWidth(); j++) pic.setRGB(i,j,((pic.getRGB(i,j)-min)*254)/(max-min));
+        for (int i = 0; i < pic.getWidth(); i++) for (int j = 0; j < pic.getHeight(); j++) pic.setRGB(i,j,((pic.getRGB(i,j)-min)*254)/(max-min));
         return pic;
     }
     public static BufferedImage veivletDog(BufferedImage pic){
@@ -92,12 +92,12 @@ public class Veivlet {
                 MGy = {{1,2,1},
                         {0,0,0},
                         {-1,-2,-1}},
-                matrix = new int[pic.getWidth()][pic.getWidth()],
+                matrix = new int[pic.getWidth()][pic.getHeight()],
                 picMatrix = new int[pic.getWidth()][pic.getHeight()];
 
         for (int i = 0; i < matrix.length; i++)for (int j = 0; j < matrix[i].length; j++)matrix[i][j] = Math.abs(pic.getRGB(i,j));
-        for (int iY  = 1; iY< pic.getHeight()-2; iY++){
-            for (int iX = 1; iX < pic.getWidth()-2; iX++) {
+        for (int iY  = 1; iY< pic.getWidth()-2; iY++){
+            for (int iX = 1; iX <pic.getHeight() -2; iX++) {
                 int GX = 0, GY = 0;
                 int[][] A = getSubMatrix(matrix,iY-1,iY+1,iX-1,iX+1);
                 for (int y = 0; y < 2; y++)for (int x = 0; x < 2; x++)GX += A[y][x]*MGx[y][x];
@@ -105,7 +105,7 @@ public class Veivlet {
                 picMatrix[iY][iX] = (int) Math.sqrt(Math.pow(GX,2)+(Math.pow(GY,2)));
             }
         }
-        for (int i = 0; i < pic.getHeight(); i++)for (int j = 0; j < pic.getHeight(); j++)pic.setRGB(i,j,picMatrix[i][j]);
+        for (int i = 0; i < pic.getWidth(); i++)for (int j = 0; j < pic.getHeight(); j++)pic.setRGB(i,j,picMatrix[i][j]);
         return pic;
     }
     public static int[][] getSubMatrix(int[][] matrix, int firstRow, int destRow, int firstCol, int destCol){
@@ -120,7 +120,7 @@ public class Veivlet {
     }
     public static BufferedImage grab(BufferedImage DifferentX, BufferedImage DifferentY, BufferedImage pic){
         for (int x = 0; x < DifferentX.getWidth()-1; x++) {
-            for (int y = 0; y < DifferentY.getWidth()-1; y++) {
+            for (int y = 0; y < DifferentY.getHeight()-1; y++) {
                 pic.setRGB(x,y,(int) Math.sqrt(Math.pow(DifferentX.getRGB(x,y),2)+Math.pow(DifferentY.getRGB(x,y),2)));
             }
         }
