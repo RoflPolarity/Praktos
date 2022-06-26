@@ -34,8 +34,8 @@ public class Veivlet {
         ImageIO.write(sobelImg,getFileExtension(file), new File(directory.getAbsolutePath()+"\\Sobel." + getFileExtension(file)));
         GrabImg = NormFactor(grab(RSchmX(ImageIO.read(file)),RSchmY(ImageIO.read(file)),ImageIO.read(file)));
         ImageIO.write(GrabImg,getFileExtension(file), new File(directory.getAbsolutePath()+"\\test." + getFileExtension(file)));
-        DxDog = dXDOG(deepCopy(normImg));
-        DyDog = dYDOG(deepCopy(normImg));
+        DxDog = dXDOG(deepCopy(image));
+        DyDog = dYDOG(deepCopy(image));
         VeivletDog = grab(deepCopy(DxDog),deepCopy(DyDog),ImageIO.read(file));
         ImageIO.write(VeivletDog,getFileExtension(file), new File(directory.getAbsolutePath()+"\\DOG." + getFileExtension(file)));
     }
@@ -68,10 +68,10 @@ public class Veivlet {
         for (int i = 0; i < pic.getWidth(); i++) for (int j = 0; j < pic.getHeight(); j++) pic.setRGB(i,j,((pic.getRGB(i,j)-min)*254)/(max-min));
         return deepCopy(pic);
     }
-    private static int veivletDog(int x){return (int) (Math.pow(Math.E,-Math.pow(x,2)/2) - 0.5*Math.pow(Math.E,-Math.pow(x,2)/8));}
-    private static int veivletDogP1(int x){return(int) (0.125 * x * Math.pow(Math.E,-Math.pow(x,2)/8) - x*Math.pow(Math.E,-Math.pow(x,2)/2));}
-    private int diskretDog(int x, int m,int n){ return (int) (Math.pow(a,-m/2)*veivletDog((int) (Math.pow(a,-m)*x-n)));}
-    private int diskretDogP1(int x, int m,int n){ return (int) (Math.pow(a,-m/2)*veivletDogP1((int) (Math.pow(a,-m)*x-n)));}
+    private double veivletDog(double x){return (Math.pow(Math.E,-Math.pow(x,2)/2) - 0.5*Math.pow(Math.E,-Math.pow(x,2)/8));}
+    private double veivletDogP1(double x){return (0.125 * x * Math.pow(Math.E,-Math.pow(x,2)/8) - x*Math.pow(Math.E,-Math.pow(x,2)/2));}
+    private double diskretDog(int x, double m,int n){ return (Math.pow(a,-m/2)*veivletDog((Math.pow(a,-m)*x-n)));}
+    private double diskretDogP1(int x, double m,int n){ return (Math.pow(a,-m/2)*veivletDogP1((Math.pow(a,-m)*x-n)));}
     private static BufferedImage veivletMHAT(BufferedImage pic){
         for (int i = 0; i < pic.getWidth(); i++) {
             for (int j = 0; j < pic.getHeight(); j++) {
@@ -140,69 +140,81 @@ public class Veivlet {
 
 
     private int[][] DWTDOGX(){
-        //int[][] res = new int[Xdecomposition][Xquantity-1];
         int[][] DWT = new int[Xdecomposition][Xquantity-1];
         for (int y = 0; y < Yquantity-1; y++) {
             for (int m = 0; m < Xdecomposition; m++) {
                 for (int n = 0; n < Xquantity-1; n++) {
                     int summ = 0;
                     for (int x = 0; x < Xquantity-1; x++) {
-                        summ+= diskretDog(x, (int) Math.pow(2,m-1),n)*image.getRGB(x,y);
+                        summ+= diskretDog(x,Math.pow(2,m-1),n)*image.getRGB(x,y);
                     }
                     DWT[m][n] = summ;
                 }
             }
         }
+        for (int i = 0; i < DWT.length; i++) {
+            for (int j = 0; j < DWT[i].length; j++) {
+                System.out.print(DWT[i][j] + " ");
+            }
+            System.out.println();
+        }
+        System.out.println("DWT\n");
         return DWT;
     }
+
     private BufferedImage dXDOG(BufferedImage pic){
-        int[][] IDWT = new int[Yquantity-1][Xquantity-1];
-        for (int y = 0; y < Yquantity-1; y++) {
-            for (int x = 0; x < Xquantity-1; x++) {
+        int[][] DWTDOGX = DWTDOGX();
+        for (int y = 0; y < pic.getWidth()-1; y++) {
+            for (int x = 0; x < pic.getHeight()-1; x++) {
                 int summ = 0;
                 for (int i = 0; i < Xdecomposition; i++) {
                     for (int j = 0; j < Xquantity-1; j++) {
-                        summ+=diskretDogP1(x, (int) Math.pow(2,i-1),j)*DWTDOGX()[i][j];
+                        summ+=diskretDogP1(x,Math.pow(2,i-1),j)*DWTDOGX[i][j];
                     }
                 }
-                IDWT[x][y] = summ;
+                pic.setRGB(y,x, (int) Math.abs(summ/10.5));
             }
         }
-        divideMatrix(IDWT,10.5);
-        for (int i = 0; i < IDWT.length; i++)for (int j = 0; j < IDWT[i].length; j++)pic.setRGB(i,j,IDWT[i][j]);
+        System.out.println("Готово");
         return pic;
     }
     private int[][] DWTDOGY(){
-        int[][] res = new int[Ydecomposition][Yquantity-1];
         int[][] DWT = new int[Ydecomposition][Yquantity-1];
         for (int x = 0; x < Xquantity-1; x++) {
             for (int m = 0; m < Ydecomposition; m++) {
                 for (int n = 0; n < Xquantity-1; n++) {
                     int summ = 0;
                     for (int y = 0; y < Yquantity-1; y++) {
-                        summ+= diskretDog(y, (int) Math.pow(2,m-1),n)*image.getRGB(x,y);
+                        summ+= diskretDog(y,Math.pow(2,m-1),n)*image.getRGB(x,y);
                     }
                     DWT[m][n] = summ;
                 }
             }
         }
+        for (int i = 0; i < DWT.length; i++) {
+            for (int j = 0; j < DWT[i].length; j++) {
+                System.out.print(DWT[i][j] + " ");
+            }
+            System.out.println();
+        }
+        System.out.println("DWT\n");
         return DWT;
     }
     private BufferedImage dYDOG(BufferedImage pic){
-        int[][] IDWT = new int[Yquantity-1][Xquantity-1];
-        for (int y = 0; y < Xquantity-1; y++) {
-            for (int x = 0; x < Yquantity-1; x++) {
+        int[][] DWTDOGY = DWTDOGY();
+        int[][] IDWT = new int[pic.getHeight()-1][pic.getWidth()-1];
+        for (int y = 0; y < pic.getWidth()-1; y++) {
+            for (int x = 0; x < pic.getHeight()-1; x++) {
                 int summ = 0;
                 for (int i = 0; i < Ydecomposition; i++) {
                     for (int j = 0; j < Yquantity-1; j++) {
-                        summ+=diskretDogP1(x, (int) Math.pow(2,i-1),j)*DWTDOGY()[i][j];
+                        summ+=diskretDogP1(y,Math.pow(2,i-1),j)*DWTDOGY[i][j];
                     }
                 }
-                IDWT[x][y] = summ;
+                pic.setRGB(y,x, (int) Math.abs(summ/10.5));
             }
         }
-        divideMatrix(IDWT,10.5);
-        for (int i = 0; i < IDWT.length; i++)for (int j = 0; j < IDWT[i].length; j++)pic.setRGB(i,j,IDWT[i][j]);
+        System.out.println("Готово");
         return pic;
     }
     private static int[][] getSubMatrix(int[][] matrix, int firstRow, int destRow, int firstCol, int destCol){
