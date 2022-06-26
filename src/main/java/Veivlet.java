@@ -1,55 +1,65 @@
+import javafx.embed.swing.SwingFXUtils;
+import javafx.scene.image.Image;
+
 import javax.imageio.ImageIO;
 import java.awt.image.BufferedImage;
+import java.awt.image.ColorModel;
+import java.awt.image.WritableRaster;
 import java.io.File;
 import java.io.IOException;
 import java.util.Random;
 
 public class Veivlet {
-    private BufferedImage image, noiseImg, normImg, sobelImg, GrabImg;
-    private String username = System.getProperty("user.name");
+    private  BufferedImage noiseImg;
+    private  BufferedImage normImg;
+    private  BufferedImage sobelImg;
+    private  BufferedImage GrabImg;
+
     public Veivlet(String path) throws IOException {
-        File file = new File(path);
-        image = ImageIO.read(file);
-        noiseImg = MassNoise(5,image);
-        ImageIO.write(noiseImg,getFileExtension(file), new File("C:\\Users\\"+ username+"\\noise." + getFileExtension(file)));
+        String username = System.getProperty("user.name");
+        File file = new File(path), directory = new File("C:\\Users\\" + username +"\\Desktop\\"+file.getName().split("\\.")[0]);
+        if (!directory.exists())directory.mkdir();
+        BufferedImage image = ImageIO.read(file);
+        noiseImg = MassNoise(5, image);
+        ImageIO.write(noiseImg,getFileExtension(file), new File(directory.getAbsolutePath()+"\\noise." + getFileExtension(file)));
         normImg = NormFactor(noiseImg);
-        ImageIO.write(normImg,getFileExtension(file), new File("C:\\Users\\"+ username+"\\norm." + getFileExtension(file)));
+        ImageIO.write(normImg,getFileExtension(file), new File(directory.getAbsolutePath()+"\\norm." + getFileExtension(file)));
         sobelImg = sobelOperator(normImg);
-        ImageIO.write(sobelImg,getFileExtension(file), new File("C:\\Users\\"+ username+"\\Sobel." + getFileExtension(file)));
+        ImageIO.write(sobelImg,getFileExtension(file), new File(directory.getAbsolutePath()+"\\Sobel." + getFileExtension(file)));
         GrabImg = NormFactor(grab(RSchmX(ImageIO.read(file)),RSchmY(ImageIO.read(file)),ImageIO.read(file)));
-        ImageIO.write(GrabImg,getFileExtension(file), new File("C:\\Users\\"+ username+"\\test." + getFileExtension(file)));
+        ImageIO.write(GrabImg,getFileExtension(file), new File(directory.getAbsolutePath()+"\\test." + getFileExtension(file)));
 
     }
-
+    public Image getNoiseImg(){return SwingFXUtils.toFXImage(noiseImg,null);}
+    public Image getNormImg(){return SwingFXUtils.toFXImage(normImg,null);}
+    public Image getsobelImg(){return SwingFXUtils.toFXImage(sobelImg,null);}
+    public Image getGrabImg(){return SwingFXUtils.toFXImage(GrabImg,null);}
     private static String getFileExtension(File file) {
         String fileName = file.getName();
         if(fileName.lastIndexOf(".") != -1 && fileName.lastIndexOf(".") != 0)
             return fileName.substring(fileName.lastIndexOf(".")+1);
         else return "";
     }
-    public static void main(String[] args) throws IOException {
-        BufferedImage pic = ImageIO.read(new File("dom.bmp"));
-        MassNoise(5,pic);
-        ImageIO.write(pic,"bmp",new File("noise.bmp"));
-        NormFactor(pic);
-        ImageIO.write(pic,"bmp",new File("norm.bmp"));
-        ImageIO.write(sobelOperator(pic),"bmp",new File("sobelDom.bmp"));
-        ImageIO.write(NormFactor(grab(RSchmX(ImageIO.read(new File("dom.bmp"))),RSchmY(ImageIO.read(new File("dom.bmp"))),ImageIO.read(new File("dom.bmp")))),"bmp",new File("test.bmp"));
-
+    static BufferedImage deepCopy(BufferedImage bi) {
+        ColorModel cm = bi.getColorModel();
+        boolean isAlphaPremultiplied = cm.isAlphaPremultiplied();
+        WritableRaster raster = bi.copyData(null);
+        return new BufferedImage(cm, raster, isAlphaPremultiplied, null);
     }
-    public static BufferedImage MassNoise(int sigma, BufferedImage pic){
+
+    private static BufferedImage MassNoise(int sigma, BufferedImage pic){
         Random rand = new Random();
         for (int i = 0; i < pic.getWidth(); i++)for (int j = 0; j < pic.getHeight(); j++) pic.setRGB(i,j, Math.abs((int) (pic.getRGB(i,j) + sigma*rand.nextGaussian())));
-        return pic;
+        return deepCopy(pic);
     }
-    public static BufferedImage NormFactor(BufferedImage pic){
+    private static BufferedImage NormFactor(BufferedImage pic){
         int min = pic.getRGB(0,0), max = pic.getRGB(0,0);
         for (int i = 0; i < pic.getWidth(); i++) for (int j = 0; j < pic.getHeight(); j++)if (pic.getRGB(i,j)<min)min = pic.getRGB(i,j);
         for (int i = 0; i < pic.getWidth(); i++) for (int j = 0; j < pic.getHeight(); j++)if (pic.getRGB(i,j)>max)max = pic.getRGB(i,j);
         for (int i = 0; i < pic.getWidth(); i++) for (int j = 0; j < pic.getHeight(); j++) pic.setRGB(i,j,((pic.getRGB(i,j)-min)*254)/(max-min));
-        return pic;
+        return deepCopy(pic);
     }
-    public static BufferedImage veivletDog(BufferedImage pic){
+    private static BufferedImage veivletDog(BufferedImage pic){
         for (int i = 0; i < pic.getWidth(); i++) {
             for (int j = 0; j < pic.getHeight(); j++) {
                 int x = Math.abs(pic.getRGB(i,j));
@@ -58,7 +68,7 @@ public class Veivlet {
         }
         return pic;
     }
-    public static BufferedImage veivletDogP(BufferedImage pic){
+    private static BufferedImage veivletDogP(BufferedImage pic){
         for (int i = 0; i < pic.getWidth(); i++) {
             for (int j = 0; j < pic.getHeight(); j++) {
                 int x = Math.abs(pic.getRGB(i,j));
@@ -67,7 +77,7 @@ public class Veivlet {
         }
         return pic;
     }
-    public static BufferedImage veivletMHAT(BufferedImage pic){
+    private static BufferedImage veivletMHAT(BufferedImage pic){
         for (int i = 0; i < pic.getWidth(); i++) {
             for (int j = 0; j < pic.getHeight(); j++) {
                 int x = Math.abs(pic.getRGB(i,j));
@@ -76,7 +86,7 @@ public class Veivlet {
         }
         return pic;
     }
-    public static BufferedImage veivletMHATP(BufferedImage pic){
+    private static BufferedImage veivletMHATP(BufferedImage pic){
         for (int i = 0; i < pic.getWidth(); i++) {
             for (int j = 0; j < pic.getHeight(); j++) {
                 int x = Math.abs(pic.getRGB(i,j));
@@ -85,7 +95,7 @@ public class Veivlet {
         }
         return pic;
     }
-    public static BufferedImage sobelOperator(BufferedImage pic){
+    private static BufferedImage sobelOperator(BufferedImage pic){
         int[][] MGx = {{1,0,-1},
                 {2,0,-2},
                 {1,0,-1}},
@@ -106,9 +116,9 @@ public class Veivlet {
             }
         }
         for (int i = 0; i < pic.getWidth(); i++)for (int j = 0; j < pic.getHeight(); j++)pic.setRGB(i,j,picMatrix[i][j]);
-        return pic;
+        return deepCopy(pic);
     }
-    public static int[][] getSubMatrix(int[][] matrix, int firstRow, int destRow, int firstCol, int destCol){
+    private static int[][] getSubMatrix(int[][] matrix, int firstRow, int destRow, int firstCol, int destCol){
         int[][] newMatrix = new int[destRow-firstRow+1][destCol-firstCol+1];
         for (int i = 0; i < newMatrix.length; i++, firstRow++) {
             int col = firstCol;
@@ -118,15 +128,15 @@ public class Veivlet {
         }
         return newMatrix;
     }
-    public static BufferedImage grab(BufferedImage DifferentX, BufferedImage DifferentY, BufferedImage pic){
+    private static BufferedImage grab(BufferedImage DifferentX, BufferedImage DifferentY, BufferedImage pic){
         for (int x = 0; x < DifferentX.getWidth()-1; x++) {
             for (int y = 0; y < DifferentY.getHeight()-1; y++) {
                 pic.setRGB(x,y,(int) Math.sqrt(Math.pow(DifferentX.getRGB(x,y),2)+Math.pow(DifferentY.getRGB(x,y),2)));
             }
         }
-        return pic;
+        return deepCopy(pic);
     }
-    public static BufferedImage RSchmX(BufferedImage pic){
+    private static BufferedImage RSchmX(BufferedImage pic){
         for (int x = 1; x < pic.getHeight()-1; x++) {
             for (int y = 1; y < pic.getWidth()-1; y++) {
                 pic.setRGB(y,x,pic.getRGB(y,x)-pic.getRGB(y,x-1));
@@ -134,7 +144,7 @@ public class Veivlet {
         }
         return pic;
     }
-    public static BufferedImage RSchmY(BufferedImage pic) {
+    private static BufferedImage RSchmY(BufferedImage pic) {
         for (int x = 1; x < pic.getHeight() - 1; x++) {
             for (int y = 1; y < pic.getWidth() - 1; y++) {
                 pic.setRGB(y, x, pic.getRGB(y, x) - pic.getRGB(y-1, x));
@@ -143,7 +153,7 @@ public class Veivlet {
         return pic;
     }
     //WRITE
-    public static int dXDOG(BufferedImage pic){
+    private static int dXDOG(BufferedImage pic){
         int res = 0;
         int Xdecomposition = (int) (pic.getHeight()/Math.log(2))-1, Xquantity = pic.getHeight();
         for (int y = 0; y < pic.getWidth()-1; y++) {

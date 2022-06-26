@@ -58,6 +58,9 @@ public class Sample {
         run.setOnAction(event -> {
             try {
                 Veivlet main = new Veivlet(new String(files.get().getAbsolutePath().getBytes(), "windows-1251"));
+                normPic.setImage(main.getNoiseImg());
+                SobelPic.setImage(main.getsobelImg());
+                testPic.setImage(main.getGrabImg());
             } catch (IOException e) {
                 e.printStackTrace();
             }
