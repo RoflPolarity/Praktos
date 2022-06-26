@@ -10,16 +10,22 @@ import java.io.IOException;
 import java.util.Random;
 
 public class Veivlet {
-    private  BufferedImage noiseImg;
-    private  BufferedImage normImg;
-    private  BufferedImage sobelImg;
-    private  BufferedImage GrabImg;
+    private final int Xdecomposition,Ydecomposition, Xquantity, Yquantity, a = 3;
+    private final BufferedImage image;
+    private final BufferedImage noiseImg;
+    private final BufferedImage normImg;
+    private final BufferedImage sobelImg;
+    private final BufferedImage GrabImg;
 
     public Veivlet(String path) throws IOException {
         String username = System.getProperty("user.name");
         File file = new File(path), directory = new File("C:\\Users\\" + username +"\\Desktop\\"+file.getName().split("\\.")[0]);
         if (!directory.exists())directory.mkdir();
-        BufferedImage image = ImageIO.read(file);
+        image = ImageIO.read(file);
+        Xquantity = image.getWidth();
+        Yquantity = image.getHeight();
+        Xdecomposition = (int) ((Math.log(Xquantity)/Math.log(2))-1);
+        Ydecomposition = (int) ((Math.log(Yquantity)/Math.log(2))-1);
         noiseImg = MassNoise(5, image);
         ImageIO.write(noiseImg,getFileExtension(file), new File(directory.getAbsolutePath()+"\\noise." + getFileExtension(file)));
         normImg = NormFactor(noiseImg);
@@ -40,7 +46,7 @@ public class Veivlet {
             return fileName.substring(fileName.lastIndexOf(".")+1);
         else return "";
     }
-    static BufferedImage deepCopy(BufferedImage bi) {
+    private static BufferedImage deepCopy(BufferedImage bi) {
         ColorModel cm = bi.getColorModel();
         boolean isAlphaPremultiplied = cm.isAlphaPremultiplied();
         WritableRaster raster = bi.copyData(null);
@@ -59,24 +65,10 @@ public class Veivlet {
         for (int i = 0; i < pic.getWidth(); i++) for (int j = 0; j < pic.getHeight(); j++) pic.setRGB(i,j,((pic.getRGB(i,j)-min)*254)/(max-min));
         return deepCopy(pic);
     }
-    private static BufferedImage veivletDog(BufferedImage pic){
-        for (int i = 0; i < pic.getWidth(); i++) {
-            for (int j = 0; j < pic.getHeight(); j++) {
-                int x = Math.abs(pic.getRGB(i,j));
-                pic.setRGB(i,j,(int) (Math.pow(Math.E,-Math.pow(x,2)/2) - 0.5*Math.pow(Math.E,-Math.pow(x,2)/8)));
-            }
-        }
-        return pic;
-    }
-    private static BufferedImage veivletDogP(BufferedImage pic){
-        for (int i = 0; i < pic.getWidth(); i++) {
-            for (int j = 0; j < pic.getHeight(); j++) {
-                int x = Math.abs(pic.getRGB(i,j));
-                pic.setRGB(i,j,(int) (0.125 * x * Math.pow(Math.E,-Math.pow(x,2)/8) - x*Math.pow(Math.E,-Math.pow(x,2)/2)));
-            }
-        }
-        return pic;
-    }
+    private static int veivletDog(int x){return (int) (Math.pow(Math.E,-Math.pow(x,2)/2) - 0.5*Math.pow(Math.E,-Math.pow(x,2)/8));}
+    private static int veivletDogP1(int x){return(int) (0.125 * x * Math.pow(Math.E,-Math.pow(x,2)/8) - x*Math.pow(Math.E,-Math.pow(x,2)/2));}
+    private int diskretDog(int x, int m,int n){ return (int) (Math.pow(a,-m/2)*veivletDog((int) (Math.pow(a,-m)*x-n)));}
+    private int diskretDogP1(int x, int m,int n){ return (int) (Math.pow(a,-m/2)*veivletDogP1((int) (Math.pow(a,-m)*x-n)));}
     private static BufferedImage veivletMHAT(BufferedImage pic){
         for (int i = 0; i < pic.getWidth(); i++) {
             for (int j = 0; j < pic.getHeight(); j++) {
@@ -152,13 +144,30 @@ public class Veivlet {
         }
         return pic;
     }
-    //WRITE
-    private static int dXDOG(BufferedImage pic){
-        int res = 0;
-        int Xdecomposition = (int) (pic.getHeight()/Math.log(2))-1, Xquantity = pic.getHeight();
-        for (int y = 0; y < pic.getWidth()-1; y++) {
-            for (int x = 0; x < pic.getWidth()-1; x++) {
 
+
+    private int[][] DWTDOGX(BufferedImage pic){
+        int[][] res = new int[pic.getHeight()][pic.getWidth()];
+        int[][] DWT = new int[Xdecomposition][Xquantity-1];
+        for (int y = 0; y < Yquantity-1; y++) {
+            for (int m = 0; m < Xdecomposition; m++) {
+                for (int n = 0; n < Xquantity-1; n++) {
+                    int summ = 0;
+                    for (int i = 0; i < Xquantity-1; i++) {
+                        summ+= diskretDog(i, (int) Math.pow(2,m-1),n)*pic.getRGB(i,y);
+                    }
+                    DWT[m][n] = summ;
+                }
+            }
+            res[y] = DWT[y];
+        }
+        return res;
+    }
+    private int dXDOG(BufferedImage pic){
+        int res = 0;
+        for (int y = 0; y < Xdecomposition; y++) {
+            for (int x = 0; x < Xquantity-1; x++) {
+                
             }
         }
 
