@@ -16,7 +16,7 @@ public class Veivlet {
     private final BufferedImage normImg;
     private final BufferedImage sobelImg;
     private final BufferedImage GrabImg;
-
+    private final BufferedImage DxDog,DyDog,VeivletDog;
     public Veivlet(String path) throws IOException {
         String username = System.getProperty("user.name");
         File file = new File(path), directory = new File("C:\\Users\\" + username +"\\Desktop\\"+file.getName().split("\\.")[0]);
@@ -34,7 +34,10 @@ public class Veivlet {
         ImageIO.write(sobelImg,getFileExtension(file), new File(directory.getAbsolutePath()+"\\Sobel." + getFileExtension(file)));
         GrabImg = NormFactor(grab(RSchmX(ImageIO.read(file)),RSchmY(ImageIO.read(file)),ImageIO.read(file)));
         ImageIO.write(GrabImg,getFileExtension(file), new File(directory.getAbsolutePath()+"\\test." + getFileExtension(file)));
-
+        DxDog = dXDOG(deepCopy(normImg));
+        DyDog = dYDOG(deepCopy(normImg));
+        VeivletDog = grab(deepCopy(DxDog),deepCopy(DyDog),ImageIO.read(file));
+        ImageIO.write(VeivletDog,getFileExtension(file), new File(directory.getAbsolutePath()+"\\DOG." + getFileExtension(file)));
     }
     public Image getNoiseImg(){return SwingFXUtils.toFXImage(noiseImg,null);}
     public Image getNormImg(){return SwingFXUtils.toFXImage(normImg,null);}
@@ -110,16 +113,6 @@ public class Veivlet {
         for (int i = 0; i < pic.getWidth(); i++)for (int j = 0; j < pic.getHeight(); j++)pic.setRGB(i,j,picMatrix[i][j]);
         return deepCopy(pic);
     }
-    private static int[][] getSubMatrix(int[][] matrix, int firstRow, int destRow, int firstCol, int destCol){
-        int[][] newMatrix = new int[destRow-firstRow+1][destCol-firstCol+1];
-        for (int i = 0; i < newMatrix.length; i++, firstRow++) {
-            int col = firstCol;
-            for (int j = 0; j < newMatrix[i].length; j++, col++) {
-                newMatrix[i][j] = matrix[firstRow][col];
-            }
-        }
-        return newMatrix;
-    }
     private static BufferedImage grab(BufferedImage DifferentX, BufferedImage DifferentY, BufferedImage pic){
         for (int x = 0; x < DifferentX.getWidth()-1; x++) {
             for (int y = 0; y < DifferentY.getHeight()-1; y++) {
@@ -146,31 +139,96 @@ public class Veivlet {
     }
 
 
-    private int[][] DWTDOGX(BufferedImage pic){
-        int[][] res = new int[pic.getHeight()][pic.getWidth()];
+    private int[][] DWTDOGX(){
+        //int[][] res = new int[Xdecomposition][Xquantity-1];
         int[][] DWT = new int[Xdecomposition][Xquantity-1];
         for (int y = 0; y < Yquantity-1; y++) {
             for (int m = 0; m < Xdecomposition; m++) {
                 for (int n = 0; n < Xquantity-1; n++) {
                     int summ = 0;
-                    for (int i = 0; i < Xquantity-1; i++) {
-                        summ+= diskretDog(i, (int) Math.pow(2,m-1),n)*pic.getRGB(i,y);
+                    for (int x = 0; x < Xquantity-1; x++) {
+                        summ+= diskretDog(x, (int) Math.pow(2,m-1),n)*image.getRGB(x,y);
                     }
                     DWT[m][n] = summ;
                 }
             }
-            res[y] = DWT[y];
         }
-        return res;
+        return DWT;
     }
-    private int dXDOG(BufferedImage pic){
-        int res = 0;
-        for (int y = 0; y < Xdecomposition; y++) {
+    private BufferedImage dXDOG(BufferedImage pic){
+        int[][] IDWT = new int[Yquantity-1][Xquantity-1];
+        for (int y = 0; y < Yquantity-1; y++) {
             for (int x = 0; x < Xquantity-1; x++) {
-                
+                int summ = 0;
+                for (int i = 0; i < Xdecomposition; i++) {
+                    for (int j = 0; j < Xquantity-1; j++) {
+                        summ+=diskretDogP1(x, (int) Math.pow(2,i-1),j)*DWTDOGX()[i][j];
+                    }
+                }
+                IDWT[x][y] = summ;
             }
         }
-
-        return res;
+        divideMatrix(IDWT,10.5);
+        for (int i = 0; i < IDWT.length; i++)for (int j = 0; j < IDWT[i].length; j++)pic.setRGB(i,j,IDWT[i][j]);
+        return pic;
+    }
+    private int[][] DWTDOGY(){
+        int[][] res = new int[Ydecomposition][Yquantity-1];
+        int[][] DWT = new int[Ydecomposition][Yquantity-1];
+        for (int x = 0; x < Xquantity-1; x++) {
+            for (int m = 0; m < Ydecomposition; m++) {
+                for (int n = 0; n < Xquantity-1; n++) {
+                    int summ = 0;
+                    for (int y = 0; y < Yquantity-1; y++) {
+                        summ+= diskretDog(y, (int) Math.pow(2,m-1),n)*image.getRGB(x,y);
+                    }
+                    DWT[m][n] = summ;
+                }
+            }
+        }
+        return DWT;
+    }
+    private BufferedImage dYDOG(BufferedImage pic){
+        int[][] IDWT = new int[Yquantity-1][Xquantity-1];
+        for (int y = 0; y < Xquantity-1; y++) {
+            for (int x = 0; x < Yquantity-1; x++) {
+                int summ = 0;
+                for (int i = 0; i < Ydecomposition; i++) {
+                    for (int j = 0; j < Yquantity-1; j++) {
+                        summ+=diskretDogP1(x, (int) Math.pow(2,i-1),j)*DWTDOGY()[i][j];
+                    }
+                }
+                IDWT[x][y] = summ;
+            }
+        }
+        divideMatrix(IDWT,10.5);
+        for (int i = 0; i < IDWT.length; i++)for (int j = 0; j < IDWT[i].length; j++)pic.setRGB(i,j,IDWT[i][j]);
+        return pic;
+    }
+    private static int[][] getSubMatrix(int[][] matrix, int firstRow, int destRow, int firstCol, int destCol){
+        int[][] newMatrix = new int[destRow-firstRow+1][destCol-firstCol+1];
+        for (int i = 0; i < newMatrix.length; i++, firstRow++) {
+            int col = firstCol;
+            for (int j = 0; j < newMatrix[i].length; j++, col++) {
+                newMatrix[i][j] = matrix[firstRow][col];
+            }
+        }
+        return newMatrix;
+    }
+    private int[][] divideMatrix(int[][] matrix, int num){
+        for (int i = 0; i < matrix.length; i++) {
+            for (int j = 0; j < matrix[i].length; j++) {
+                matrix[i][j] /= num;
+            }
+        }
+        return matrix;
+    }
+    private int[][] divideMatrix(int[][] matrix, double num){
+        for (int i = 0; i < matrix.length; i++) {
+            for (int j = 0; j < matrix[i].length; j++) {
+                matrix[i][j] /= num;
+            }
+        }
+        return matrix;
     }
 }
