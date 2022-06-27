@@ -10,7 +10,8 @@ import java.io.IOException;
 import java.util.Random;
 
 public class Veivlet {
-    private final int Xdecomposition,Ydecomposition, Xquantity, Yquantity, a = 3;
+    private final int Xdecomposition, Xquantity, a = 3,nX, mX,kX;
+    private final int Ydecomposition, Yquantity, mY, nY, kY;
     private final BufferedImage image;
     private final BufferedImage noiseImg;
     private final BufferedImage normImg;
@@ -22,10 +23,20 @@ public class Veivlet {
         File file = new File(path), directory = new File("C:\\Users\\" + username +"\\Desktop\\"+file.getName().split("\\.")[0]);
         if (!directory.exists())directory.mkdir();
         image = ImageIO.read(file);
+
+
         Xquantity = image.getWidth();
         Yquantity = image.getHeight();
         Xdecomposition = (int) ((Math.log(Xquantity)/Math.log(2))-1);
         Ydecomposition = (int) ((Math.log(Yquantity)/Math.log(2))-1);
+        nX = Xquantity-1;
+        mX = Xdecomposition;
+        kX = Xquantity-1;
+        mY = Ydecomposition;
+        nY = Yquantity-1;
+        kY = Yquantity-1;
+
+
         noiseImg = MassNoise(5, image);
         ImageIO.write(noiseImg,getFileExtension(file), new File(directory.getAbsolutePath()+"\\noise." + getFileExtension(file)));
         normImg = NormFactor(noiseImg);
@@ -34,9 +45,11 @@ public class Veivlet {
         ImageIO.write(sobelImg,getFileExtension(file), new File(directory.getAbsolutePath()+"\\Sobel." + getFileExtension(file)));
         GrabImg = NormFactor(grab(RSchmX(ImageIO.read(file)),RSchmY(ImageIO.read(file)),ImageIO.read(file)));
         ImageIO.write(GrabImg,getFileExtension(file), new File(directory.getAbsolutePath()+"\\test." + getFileExtension(file)));
-        DxDog = dXDOG(deepCopy(image));
-        DyDog = dYDOG(deepCopy(image));
-        VeivletDog = grab(deepCopy(DxDog),deepCopy(DyDog),ImageIO.read(file));
+        DxDog = dXDOG(deepCopy(normImg));
+        DyDog = dYDOG(deepCopy(normImg));
+        VeivletDog = NormFactor(grab(deepCopy(DxDog),deepCopy(DyDog),deepCopy(image)));
+        ImageIO.write(DxDog,getFileExtension(file), new File(directory.getAbsolutePath()+"\\DOGdx." + getFileExtension(file)));
+        ImageIO.write(DyDog,getFileExtension(file), new File(directory.getAbsolutePath()+"\\DOGdy." + getFileExtension(file)));
         ImageIO.write(VeivletDog,getFileExtension(file), new File(directory.getAbsolutePath()+"\\DOG." + getFileExtension(file)));
     }
     public Image getNoiseImg(){return SwingFXUtils.toFXImage(noiseImg,null);}
@@ -140,18 +153,19 @@ public class Veivlet {
 
 
     private int[][] DWTDOGX(){
-        int[][] DWT = new int[Xdecomposition][Xquantity-1];
-        for (int y = 0; y < Yquantity-1; y++) {
-            for (int m = 0; m < Xdecomposition; m++) {
-                for (int n = 0; n < Xquantity-1; n++) {
+        int[][] DWT = new int[mX][nX];
+        for (int y = 0; y < kY; y++) {
+            for (int m = 0; m < mX; m++) {
+                for (int n = 0; n < nX; n++) {
                     int summ = 0;
                     for (int x = 0; x < Xquantity-1; x++) {
                         summ+= diskretDog(x,Math.pow(2,m-1),n)*image.getRGB(x,y);
                     }
-                    DWT[m][n] = summ;
+                    DWT[m][n] = Math.abs(summ);
                 }
             }
         }
+
         for (int i = 0; i < DWT.length; i++) {
             for (int j = 0; j < DWT[i].length; j++) {
                 System.out.print(DWT[i][j] + " ");
@@ -164,15 +178,15 @@ public class Veivlet {
 
     private BufferedImage dXDOG(BufferedImage pic){
         int[][] DWTDOGX = DWTDOGX();
-        for (int y = 0; y < pic.getWidth()-1; y++) {
-            for (int x = 0; x < pic.getHeight()-1; x++) {
+        for (int y = 0; y < kY; y++) {
+            for (int x = 0; x < kX; x++) {
                 int summ = 0;
                 for (int i = 0; i < Xdecomposition; i++) {
                     for (int j = 0; j < Xquantity-1; j++) {
                         summ+=diskretDogP1(x,Math.pow(2,i-1),j)*DWTDOGX[i][j];
                     }
                 }
-                pic.setRGB(y,x, (int) Math.abs(summ/10.5));
+                pic.setRGB(x,y, summ);
             }
         }
         System.out.println("Готово");
@@ -180,14 +194,14 @@ public class Veivlet {
     }
     private int[][] DWTDOGY(){
         int[][] DWT = new int[Ydecomposition][Yquantity-1];
-        for (int x = 0; x < Xquantity-1; x++) {
-            for (int m = 0; m < Ydecomposition; m++) {
-                for (int n = 0; n < Xquantity-1; n++) {
+        for (int x = 0; x < kX; x++) {
+            for (int m = 0; m < mY; m++) {
+                for (int n = 0; n < nY; n++) {
                     int summ = 0;
                     for (int y = 0; y < Yquantity-1; y++) {
-                        summ+= diskretDog(y,Math.pow(2,m-1),n)*image.getRGB(x,y);
+                        summ+= diskretDog(x,Math.pow(2,m-1),n)*image.getRGB(x,y);
                     }
-                    DWT[m][n] = summ;
+                    DWT[m][n] = Math.abs(summ);
                 }
             }
         }
@@ -202,16 +216,15 @@ public class Veivlet {
     }
     private BufferedImage dYDOG(BufferedImage pic){
         int[][] DWTDOGY = DWTDOGY();
-        int[][] IDWT = new int[pic.getHeight()-1][pic.getWidth()-1];
-        for (int y = 0; y < pic.getWidth()-1; y++) {
-            for (int x = 0; x < pic.getHeight()-1; x++) {
+        for (int x = 0; x < kX; x++) {
+            for (int y = 0; y < kY; y++) {
                 int summ = 0;
                 for (int i = 0; i < Ydecomposition; i++) {
                     for (int j = 0; j < Yquantity-1; j++) {
                         summ+=diskretDogP1(y,Math.pow(2,i-1),j)*DWTDOGY[i][j];
                     }
                 }
-                pic.setRGB(y,x, (int) Math.abs(summ/10.5));
+                pic.setRGB(x,y, summ);
             }
         }
         System.out.println("Готово");
