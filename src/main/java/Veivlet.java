@@ -7,6 +7,7 @@ import java.awt.image.ColorModel;
 import java.awt.image.WritableRaster;
 import java.io.File;
 import java.io.IOException;
+import java.util.Arrays;
 import java.util.Random;
 
 public class Veivlet {
@@ -72,16 +73,34 @@ public class Veivlet {
         return new BufferedImage(cm, raster, isAlphaPremultiplied, null);
     }
 
-    public static BufferedImage MassNoise(int sigma, BufferedImage pic){
+    public static BufferedImage MassNoise(int sigma, BufferedImage pic) {
+        WritableRaster raster = pic.getRaster();
         Random rand = new Random();
-        for (int i = 0; i < pic.getWidth(); i++)for (int j = 0; j < pic.getHeight(); j++) pic.setRGB(i,j,((int) (pic.getRGB(i,j) + sigma*rand.nextGaussian())));
-        return deepCopy(pic);
+        for (int i = 0; i < pic.getWidth(); i++) {
+            for (int j = 0; j < pic.getHeight(); j++) {
+                int[] pix = raster.getPixel(i, j, new int[3]);
+                int res = (int)(pix[0] + sigma*rand.nextGaussian());
+                Arrays.fill(pix, res);
+                raster.setPixel(i,j,pix);
+            }
+        }
+        pic.setData(raster);
+         return deepCopy(pic);
     }
     public static BufferedImage NormFactor(BufferedImage pic){
-        int min = pic.getRGB(0,0), max = pic.getRGB(0,0);
-        for (int i = 0; i < pic.getWidth(); i++) for (int j = 0; j < pic.getHeight(); j++)if (pic.getRGB(i,j)<min)min = pic.getRGB(i,j);
-        for (int i = 0; i < pic.getWidth(); i++) for (int j = 0; j < pic.getHeight(); j++)if (pic.getRGB(i,j)>max)max = pic.getRGB(i,j);
-        for (int i = 0; i < pic.getHeight(); i++) for (int j = 0; j < pic.getWidth(); j++) pic.setRGB(i,j,((pic.getRGB(i,j)-min)*254)/(max-min));
+        WritableRaster raster = pic.getRaster();
+        int min = raster.getPixel(0,0,new int[3])[0], max = raster.getPixel(0,0,new int[3])[0];
+        for (int i = 0; i < pic.getWidth(); i++) for (int j = 0; j < pic.getHeight(); j++)if (raster.getPixel(i,j,new int[3])[0]<min)min = raster.getPixel(i,j,new int[3])[0];
+        for (int i = 0; i < pic.getWidth(); i++) for (int j = 0; j < pic.getHeight(); j++)if (raster.getPixel(i,j,new int[3])[0]>max)max = raster.getPixel(i,j,new int[3])[0];
+        for (int i = 0; i < pic.getHeight(); i++) {
+            for (int j = 0; j < pic.getWidth(); j++) {
+                int[] pix = raster.getPixel(i,j,new int[3]);
+                int res = ((pix[0]-min)*254)/(max-min);
+                Arrays.fill(pix, res);
+                raster.setPixel(i,j,pix);
+            }
+        }
+        pic.setData(raster);
         return deepCopy(pic);
     }
     private double veivletDog(double x){return (Math.pow(Math.E,-Math.pow(x,2)/2) - 0.5*Math.pow(Math.E,-Math.pow(x,2)/8));}
@@ -107,6 +126,7 @@ public class Veivlet {
         return pic;
     }
     public static BufferedImage sobelOperator(BufferedImage pic) {
+        WritableRaster raster = pic.getRaster();
         int[][] MGx = {{1, 0, -1},
                 {2, 0, -2},
                 {1, 0, -1}},
@@ -116,8 +136,7 @@ public class Veivlet {
                 matrix = new int[pic.getWidth()][pic.getWidth()],
                 picMatrix = new int[pic.getWidth()][pic.getHeight()];
 
-        for (int i = 0; i < matrix.length; i++)
-            for (int j = 0; j < matrix[i].length; j++) matrix[i][j] = (pic.getRGB(i, j));
+        for (int i = 0; i < matrix.length; i++)for (int j = 0; j < matrix[i].length; j++) matrix[i][j] = (raster.getPixel(i, j,new int[3])[0]);
         for (int iY = 1; iY < pic.getHeight() - 2; iY++) {
             for (int iX = 1; iX < pic.getWidth() - 2; iX++) {
                 int GX = 0, GY = 0;
@@ -127,38 +146,65 @@ public class Veivlet {
                 picMatrix[iY][iX] = (int) Math.sqrt(Math.pow(GX, 2) + (Math.pow(GY, 2)));
             }
         }
-        for (int i = 0; i < pic.getHeight(); i++)
-            for (int j = 0; j < pic.getHeight(); j++) pic.setRGB(i, j, picMatrix[i][j]);
+
+        for (int i = 0; i < pic.getHeight(); i++){
+            for (int j = 0; j < pic.getHeight(); j++){
+                int [] pix = raster.getPixel(i,j, new int[3]);
+                Arrays.fill(pix, picMatrix[i][j]);
+                raster.setPixel(i,j,pix);
+            }
+        }
+        pic.setData(raster);
         return deepCopy(pic);
     }
     public static BufferedImage grab(BufferedImage DifferentX, BufferedImage DifferentY, BufferedImage pic){
+        WritableRaster rasterX = DifferentX.getRaster(), rasterY = DifferentY.getRaster(), res = pic.getRaster();
         for (int x = 0; x < DifferentX.getWidth()-1; x++) {
             for (int y = 0; y < DifferentY.getWidth()-1; y++) {
-                pic.setRGB(x,y, (int) Math.sqrt(Math.pow((DifferentX.getRGB(x,y)),2)+Math.pow((DifferentY.getRGB(x,y)),2)));
+                int[] pix1 = rasterX.getPixel(x,y,new int[3]);
+                int[] pix2 = rasterY.getPixel(x,y,new int[3]);
+                int[] result = new int[3];
+                int resInt = (int) Math.sqrt(Math.pow(pix1[0],2)+Math.pow(pix2[0],2));
+                Arrays.fill(result,resInt);
+                res.setPixel(x,y,result);
             }
         }
+        pic.setData(res);
         return pic;
     }
     public static BufferedImage RSchmX(BufferedImage pic){
+        WritableRaster raster = pic.getRaster();
         Thread local = new Thread(()->{
-            System.out.println("local");
             for (int x = 1; x < pic.getHeight()-1; x++) {
                 for (int y = 1; y < pic.getWidth()-1; y++) {
-                    pic.setRGB(y,x,pic.getRGB(y,x)-pic.getRGB(y,x-1));
+                    int[] pix1 =  raster.getPixel(y,x,new int[3]);
+                    int[] pix2 = raster.getPixel(y,x-1,new int[3]);
+                    int res = pix1[0] - pix2[0];
+                    int[] resArr = new int[3];
+                    Arrays.fill(resArr,res);
+                    raster.setPixel(y,x,resArr);
                 }
             }
+            pic.setData(raster);
         });
         local.start();
         return pic;
     }
     public static BufferedImage RSchmY(BufferedImage pic) {
+        WritableRaster raster = pic.getRaster();
         Thread local = new Thread(()->{
             System.out.println("local");
             for (int x = 1; x < pic.getHeight() - 1; x++) {
                 for (int y = 1; y < pic.getWidth() - 1; y++) {
-                    pic.setRGB(y, x, pic.getRGB(y, x) - pic.getRGB(y-1, x));
+                    int[] pix1 =  raster.getPixel(y,x,new int[3]);
+                    int[] pix2 = raster.getPixel(y-1,x,new int[3]);
+                    int res = pix1[0] - pix2[0];
+                    int[] resArr = new int[3];
+                    Arrays.fill(resArr,res);
+                    raster.setPixel(y,x,resArr);
                 }
             }
+            pic.setData(raster);
         });
         local.start();
         return pic;
@@ -193,6 +239,8 @@ public class Veivlet {
         }
         return pic;
     }
+
+
     private int[][] DWTDOGY(BufferedImage pic){
         int[][] DWT = new int[Ydecomposition][Yquantity-1];
         for (int x = 0; x < kX; x++) {
@@ -226,8 +274,8 @@ public class Veivlet {
     private void getDogged(){
        DOG = new Thread(()->{
            try {
-               DxDog = dXDOG(deepCopy(normImg));
-               DyDog = dYDOG(deepCopy(normImg));
+               DxDog = dXDOG(deepCopy(image));
+               DyDog = dYDOG(deepCopy(image));
                VeivletDog = NormFactor(grab(deepCopy(DxDog),deepCopy(DyDog),deepCopy(image)));
                ImageIO.write(DxDog,getFileExtension(file), new File(directory.getAbsolutePath()+"\\DOGdx." + getFileExtension(file)));
                System.out.println("DxDog записан");
