@@ -138,19 +138,27 @@ public class Veivlet {
         return pic;
     }
     public static BufferedImage RSchmX(BufferedImage pic){
-        for (int x = 1; x < pic.getHeight()-1; x++) {
-            for (int y = 1; y < pic.getWidth()-1; y++) {
-                pic.setRGB(y,x,pic.getRGB(y,x)-pic.getRGB(y,x-1));
+        Thread local = new Thread(()->{
+            System.out.println("local");
+            for (int x = 1; x < pic.getHeight()-1; x++) {
+                for (int y = 1; y < pic.getWidth()-1; y++) {
+                    pic.setRGB(y,x,pic.getRGB(y,x)-pic.getRGB(y,x-1));
+                }
             }
-        }
+        });
+        local.start();
         return pic;
     }
     public static BufferedImage RSchmY(BufferedImage pic) {
-        for (int x = 1; x < pic.getHeight() - 1; x++) {
-            for (int y = 1; y < pic.getWidth() - 1; y++) {
-                pic.setRGB(y, x, pic.getRGB(y, x) - pic.getRGB(y-1, x));
+        Thread local = new Thread(()->{
+            System.out.println("local");
+            for (int x = 1; x < pic.getHeight() - 1; x++) {
+                for (int y = 1; y < pic.getWidth() - 1; y++) {
+                    pic.setRGB(y, x, pic.getRGB(y, x) - pic.getRGB(y-1, x));
+                }
             }
-        }
+        });
+        local.start();
         return pic;
     }
 
