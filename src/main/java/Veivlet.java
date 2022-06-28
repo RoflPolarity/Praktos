@@ -21,9 +21,11 @@ public class Veivlet {
     private BufferedImage DxDog;
     private BufferedImage DyDog;
     private BufferedImage VeivletDog;
+    private String path;
     private File file, directory;
     public Veivlet(String path) throws IOException {
         String username = System.getProperty("user.name");
+        this.path = path;
         file = new File(path);
         directory = new File("C:\\Users\\" + username +"\\Desktop\\"+file.getName().split("\\.")[0]);
         if (!directory.exists())directory.mkdir();
@@ -115,7 +117,7 @@ public class Veivlet {
                 picMatrix = new int[pic.getWidth()][pic.getHeight()];
 
         for (int i = 0; i < matrix.length; i++)
-            for (int j = 0; j < matrix[i].length; j++) matrix[i][j] = Math.abs(pic.getRGB(i, j));
+            for (int j = 0; j < matrix[i].length; j++) matrix[i][j] = (pic.getRGB(i, j));
         for (int iY = 1; iY < pic.getHeight() - 2; iY++) {
             for (int iX = 1; iX < pic.getWidth() - 2; iX++) {
                 int GX = 0, GY = 0;
@@ -163,31 +165,21 @@ public class Veivlet {
     }
 
 
-    private int[][] DWTDOGX(){
+    private int[][] DWTDOGX(BufferedImage pic){
         int[][] DWT = new int[mX][nX];
         for (int y = 0; y < kY; y++) {
             for (int m = 0; m < mX; m++) {
                 for (int n = 0; n < nX; n++) {
                     int summ = 0;
-                    for (int x = 0; x < Xquantity-1; x++) {
-                        summ+= diskretDog(x,Math.pow(2,m-1),n)*Math.abs(image.getRGB(x,y));
-                    }
+                    for (int x = 0; x < Xquantity-1; x++)summ += diskretDog(x,Math.pow(2,m-1),n)*(pic.getRGB(x,y));
                     DWT[m][n] = (summ);
                 }
             }
         }
-
-        for (int i = 0; i < DWT.length; i++) {
-            for (int j = 0; j < DWT[i].length; j++) {
-                System.out.print(DWT[i][j] + " ");
-            }
-            System.out.println();
-        }
-        System.out.println("DWT\n");
         return DWT;
     }
     private BufferedImage dXDOG(BufferedImage pic){
-        int[][] DWTDOGX = DWTDOGX();
+        int[][] DWTDOGX = DWTDOGX(pic);
         for (int y = 0; y < kY; y++) {
             for (int x = 0; x < kX; x++) {
                 int summ = 0;
@@ -199,33 +191,25 @@ public class Veivlet {
                 pic.setRGB(x,y, summ);
             }
         }
-        System.out.println("Готово");
         return pic;
     }
-    private int[][] DWTDOGY(){
+    private int[][] DWTDOGY(BufferedImage pic){
         int[][] DWT = new int[Ydecomposition][Yquantity-1];
         for (int x = 0; x < kX; x++) {
             for (int m = 0; m < mY; m++) {
                 for (int n = 0; n < nY; n++) {
                     int summ = 0;
                     for (int y = 0; y < Yquantity-1; y++) {
-                        summ+= diskretDog(x,Math.pow(2,m-1),n)*Math.abs(image.getRGB(x,y));
+                        summ+= diskretDog(x,Math.pow(2,m-1),n)*(pic.getRGB(x,y));
                     }
                     DWT[m][n] = (summ);
                 }
             }
         }
-        for (int i = 0; i < DWT.length; i++) {
-            for (int j = 0; j < DWT[i].length; j++) {
-                System.out.print(DWT[i][j] + " ");
-            }
-            System.out.println();
-        }
-        System.out.println("DWT\n");
         return DWT;
     }
     private BufferedImage dYDOG(BufferedImage pic){
-        int[][] DWTDOGY = DWTDOGY();
+        int[][] DWTDOGY = DWTDOGY(pic);
         for (int x = 0; x < kX; x++) {
             for (int y = 0; y < kY; y++) {
                 int summ = 0;
@@ -237,15 +221,14 @@ public class Veivlet {
                 pic.setRGB(x,y, summ);
             }
         }
-        System.out.println("Готово");
         return pic;
     }
     private void getDogged(){
        DOG = new Thread(()->{
-           DxDog = dXDOG(deepCopy(normImg));
-           DyDog = dYDOG(deepCopy(normImg));
-           VeivletDog = NormFactor(grab(deepCopy(DxDog),deepCopy(DyDog),deepCopy(image)));
            try {
+               DxDog = dXDOG(deepCopy(normImg));
+               DyDog = dYDOG(deepCopy(normImg));
+               VeivletDog = NormFactor(grab(deepCopy(DxDog),deepCopy(DyDog),deepCopy(image)));
                ImageIO.write(DxDog,getFileExtension(file), new File(directory.getAbsolutePath()+"\\DOGdx." + getFileExtension(file)));
                System.out.println("DxDog записан");
                ImageIO.write(DyDog,getFileExtension(file), new File(directory.getAbsolutePath()+"\\DOGdy." + getFileExtension(file)));
