@@ -53,8 +53,15 @@ public class Veivlet {
         ImageIO.write(sobelImg,getFileExtension(file), new File(directory.getAbsolutePath()+"\\Sobel." + getFileExtension(file)));
         GrabImg = NormFactor(grab(RSchmX(ImageIO.read(new File(path))), RSchmY(ImageIO.read(new File(path))), deepCopy(image)));
         ImageIO.write(GrabImg, getFileExtension(file), new File(directory.getAbsolutePath() + "\\test." + getFileExtension(file)));
-        getDogged();
-        System.out.println("Запущенно");
+        DxDog = dXDOG(deepCopy(image));
+        DyDog = dYDOG(deepCopy(image));
+        VeivletDog = NormFactor(grab(deepCopy(DxDog),deepCopy(DyDog),deepCopy(image)));
+        ImageIO.write(DxDog,getFileExtension(file), new File(directory.getAbsolutePath()+"\\DOGdx." + getFileExtension(file)));
+        System.out.println("DxDog записан");
+        ImageIO.write(DyDog,getFileExtension(file), new File(directory.getAbsolutePath()+"\\DOGdy." + getFileExtension(file)));
+        System.out.println("DyDog записан");
+        ImageIO.write(VeivletDog,getFileExtension(file), new File(directory.getAbsolutePath()+"\\DOG." + getFileExtension(file)));
+        System.out.println("Dog записан");
     }
     public Image getNoiseImg(){return SwingFXUtils.toFXImage(noiseImg,null);}
     public Image getNormImg(){return SwingFXUtils.toFXImage(normImg,null);}
@@ -208,7 +215,6 @@ public class Veivlet {
 
     private int[][][] DWTDOGX(BufferedImage pic){
         WritableRaster raster = pic.getRaster();
-
         int[][][] DWTDOGX = new int[kY][mX][nX];
         for (int y = 0; y < kY; y++) {
             int[][] DWT = new int[mX][nX];
@@ -281,21 +287,6 @@ public class Veivlet {
     }
     private void getDogged(){
        DOG = new Thread(()->{
-           try {
-               DxDog = dXDOG(deepCopy(image));
-               DyDog = dYDOG(deepCopy(image));
-               VeivletDog = NormFactor(grab(deepCopy(DxDog),deepCopy(DyDog),deepCopy(image)));
-               ImageIO.write(DxDog,getFileExtension(file), new File(directory.getAbsolutePath()+"\\DOGdx." + getFileExtension(file)));
-               System.out.println("DxDog записан");
-               ImageIO.write(DyDog,getFileExtension(file), new File(directory.getAbsolutePath()+"\\DOGdy." + getFileExtension(file)));
-               System.out.println("DyDog записан");
-               ImageIO.write(VeivletDog,getFileExtension(file), new File(directory.getAbsolutePath()+"\\DOG." + getFileExtension(file)));
-               System.out.println("Dog записан");
-           } catch (IOException e) {
-               e.printStackTrace();
-           }
-
-
        });
        DOG.start();
     }
