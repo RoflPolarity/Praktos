@@ -104,7 +104,7 @@ public class Veivlet {
         pic.setData(raster);
         return deepCopy(pic);
     }
-    private double veivletDog(double x){return (Math.pow(Math.E,Math.pow(-x,2)/2) - 0.5*Math.pow(Math.E,Math.pow(-x,2)/8));}
+    private double veivletDog(double x){return (Math.pow(Math.E,-Math.pow(x,2)/2) - 0.5*Math.pow(Math.E,-Math.pow(x,2)/8));}
     private double veivletDogP1(double x){return (0.125 * x * Math.pow(Math.E,-Math.pow(x,2)/8) - x*Math.pow(Math.E,-Math.pow(x,2)/2));}
     private double diskretDog(int x, double m,int n){ return (Math.pow(a,-m/2)*veivletDog((Math.pow(a,-m)*x-n)));}
     private double diskretDogP1(int x, double m,int n){ return (Math.pow(a,-m/2)*veivletDogP1((Math.pow(a,-m)*x-n)));}
@@ -164,7 +164,7 @@ public class Veivlet {
                 }
             }
             pic.setData(res);
-            return pic;
+            return deepCopy(pic);
     }
     public static BufferedImage RSchmX(BufferedImage pic){
         WritableRaster raster = pic.getRaster();
@@ -284,7 +284,7 @@ public class Veivlet {
            try {
                DxDog = dXDOG(deepCopy(normImg));
                DyDog = dYDOG(deepCopy(normImg));
-               VeivletDog = NormFactor(grab(deepCopy(DxDog), deepCopy(DyDog), deepCopy(image)));
+               VeivletDog = NormFactor(grab(DxDog, DyDog, image));
                ImageIO.write(DxDog, getFileExtension(file), new File(directory.getAbsolutePath() + "\\DOGdx." + getFileExtension(file)));
                System.out.println("DxDog записан");
                ImageIO.write(DyDog, getFileExtension(file), new File(directory.getAbsolutePath() + "\\DOGdy." + getFileExtension(file)));
