@@ -18,7 +18,7 @@ public class Veivlet {
     private final BufferedImage noiseImg;
     private final BufferedImage normImg;
     private final BufferedImage sobelImg;
-    private final BufferedImage GrabImg;
+    private BufferedImage GrabImg;
     private BufferedImage DxDog;
     private BufferedImage DyDog;
     private BufferedImage VeivletDog;
@@ -51,8 +51,8 @@ public class Veivlet {
         ImageIO.write(normImg,getFileExtension(file), new File(directory.getAbsolutePath()+"\\norm." + getFileExtension(file)));
         sobelImg = sobelOperator(deepCopy(normImg));
         ImageIO.write(sobelImg,getFileExtension(file), new File(directory.getAbsolutePath()+"\\Sobel." + getFileExtension(file)));
-        GrabImg = NormFactor(grab(RSchmX(ImageIO.read(new File(path))),RSchmY(ImageIO.read(new File(path))),ImageIO.read(new File(path))));
-        ImageIO.write(GrabImg,getFileExtension(file), new File(directory.getAbsolutePath()+"\\test." + getFileExtension(file)));
+        GrabImg = NormFactor(grab(RSchmX(ImageIO.read(new File(path))), RSchmY(ImageIO.read(new File(path))), deepCopy(image)));
+        ImageIO.write(GrabImg, getFileExtension(file), new File(directory.getAbsolutePath() + "\\test." + getFileExtension(file)));
         getDogged();
         System.out.println("Запущенно");
     }
@@ -78,8 +78,8 @@ public class Veivlet {
         Random rand = new Random();
         for (int i = 0; i < pic.getWidth(); i++) {
             for (int j = 0; j < pic.getHeight(); j++) {
-                int[] pix = raster.getPixel(i, j, new int[3]);
-                int res = (int)(pix[0] + sigma*rand.nextGaussian());
+                double[] pix = raster.getPixel(i, j, new double[3]);
+                double res = pix[0] + sigma*rand.nextGaussian();
                 Arrays.fill(pix, res);
                 raster.setPixel(i,j,pix);
             }
@@ -89,13 +89,13 @@ public class Veivlet {
     }
     public static BufferedImage NormFactor(BufferedImage pic){
         WritableRaster raster = pic.getRaster();
-        int min = raster.getPixel(0,0,new int[3])[0], max = raster.getPixel(0,0,new int[3])[0];
-        for (int i = 0; i < pic.getWidth(); i++) for (int j = 0; j < pic.getHeight(); j++)if (raster.getPixel(i,j,new int[3])[0]<min)min = raster.getPixel(i,j,new int[3])[0];
-        for (int i = 0; i < pic.getWidth(); i++) for (int j = 0; j < pic.getHeight(); j++)if (raster.getPixel(i,j,new int[3])[0]>max)max = raster.getPixel(i,j,new int[3])[0];
+        double min = raster.getPixel(0,0,new double[3])[0], max = raster.getPixel(0,0,new double[3])[0];
+        for (int i = 0; i < pic.getHeight(); i++) for (int j = 0; j < pic.getWidth(); j++)if (raster.getPixel(i,j,new double[3])[0]<min)min = raster.getPixel(i,j,new double[3])[0];
+        for (int i = 0; i < pic.getHeight(); i++) for (int j = 0; j < pic.getWidth(); j++)if (raster.getPixel(i,j,new double[3])[0]>max)max = raster.getPixel(i,j,new double[3])[0];
         for (int i = 0; i < pic.getHeight(); i++) {
             for (int j = 0; j < pic.getWidth(); j++) {
-                int[] pix = raster.getPixel(i,j,new int[3]);
-                int res = ((pix[0]-min)*254)/(max-min);
+                double[] pix = raster.getPixel(i,j,new double[3]);
+                double res = ((pix[0]-min)*254)/(max-min);
                 Arrays.fill(pix, res);
                 raster.setPixel(i,j,pix);
             }
@@ -132,92 +132,88 @@ public class Veivlet {
                 {1, 0, -1}},
                 MGy = {{1, 2, 1},
                         {0, 0, 0},
-                        {-1, -2, -1}},
-                matrix = new int[pic.getWidth()][pic.getWidth()],
-                picMatrix = new int[pic.getWidth()][pic.getHeight()];
+                        {-1, -2, -1}};
+               double[][] matrix = new double[pic.getWidth()][pic.getWidth()];
 
-        for (int i = 0; i < matrix.length; i++)for (int j = 0; j < matrix[i].length; j++) matrix[i][j] = (raster.getPixel(i, j,new int[3])[0]);
-        for (int iY = 1; iY < pic.getHeight() - 2; iY++) {
-            for (int iX = 1; iX < pic.getWidth() - 2; iX++) {
+        for (int i = 0; i < matrix.length; i++)for (int j = 0; j < matrix[i].length; j++) matrix[i][j] = (raster.getPixel(i, j,new double[3])[0]);
+        for (int iY = 1; iY < pic.getWidth() - 2; iY++) {
+            for (int iX = 1; iX < pic.getHeight() - 2; iX++) {
                 int GX = 0, GY = 0;
-                int[][] A = getSubMatrix(matrix, iY - 1, iY + 1, iX - 1, iX + 1);
+                double[][] A = getSubMatrix(matrix, iY - 1, iY + 1, iX - 1, iX + 1);
                 for (int y = 0; y < 2; y++) for (int x = 0; x < 2; x++) GX += A[y][x] * MGx[y][x];
                 for (int y = 0; y < 2; y++) for (int x = 0; x < 2; x++) GY += A[y][x] * MGy[y][x];
-                picMatrix[iY][iX] = (int) Math.sqrt(Math.pow(GX, 2) + (Math.pow(GY, 2)));
-            }
-        }
-
-        for (int i = 0; i < pic.getHeight(); i++){
-            for (int j = 0; j < pic.getHeight(); j++){
-                int [] pix = raster.getPixel(i,j, new int[3]);
-                Arrays.fill(pix, picMatrix[i][j]);
-                raster.setPixel(i,j,pix);
+                double[] pix = new double[3];
+                Arrays.fill(pix, Math.sqrt(Math.pow(GX, 2) + (Math.pow(GY, 2))));
+                raster.setPixel(iY,iX,pix);
             }
         }
         pic.setData(raster);
         return deepCopy(pic);
     }
-    public static BufferedImage grab(BufferedImage DifferentX, BufferedImage DifferentY, BufferedImage pic){
-        WritableRaster rasterX = DifferentX.getRaster(), rasterY = DifferentY.getRaster(), res = pic.getRaster();
-        for (int x = 0; x < DifferentX.getWidth()-1; x++) {
-            for (int y = 0; y < DifferentY.getWidth()-1; y++) {
-                int[] pix1 = rasterX.getPixel(x,y,new int[3]);
-                int[] pix2 = rasterY.getPixel(x,y,new int[3]);
-                int[] result = new int[3];
-                int resInt = (int) Math.sqrt(Math.pow(pix1[0],2)+Math.pow(pix2[0],2));
-                Arrays.fill(result,resInt);
-                res.setPixel(x,y,result);
+    public BufferedImage grab(BufferedImage DifferentX, BufferedImage DifferentY, BufferedImage pic){
+            WritableRaster rasterX = DifferentX.getRaster(), rasterY = DifferentY.getRaster(), res = pic.getRaster();
+            for (int x = 0; x < DifferentX.getWidth() - 1; x++) {
+                for (int y = 0; y < DifferentY.getWidth() - 1; y++) {
+                    int[] pix1 = rasterX.getPixel(x, y, new int[3]);
+                    int[] pix2 = rasterY.getPixel(x, y, new int[3]);
+                    int[] result = new int[3];
+                    int resInt = (int) Math.sqrt(Math.pow(pix1[0], 2) + Math.pow(pix2[0], 2));
+                    Arrays.fill(result, resInt);
+                    res.setPixel(x, y, result);
+                }
             }
-        }
-        pic.setData(res);
-        return pic;
+            pic.setData(res);
+            return pic;
     }
     public static BufferedImage RSchmX(BufferedImage pic){
         WritableRaster raster = pic.getRaster();
-        Thread local = new Thread(()->{
+        double[][][] arr = new double[pic.getHeight()][pic.getWidth()][3];
             for (int x = 1; x < pic.getHeight()-1; x++) {
                 for (int y = 1; y < pic.getWidth()-1; y++) {
-                    int[] pix1 =  raster.getPixel(y,x,new int[3]);
-                    int[] pix2 = raster.getPixel(y,x-1,new int[3]);
-                    int res = pix1[0] - pix2[0];
-                    int[] resArr = new int[3];
+                    double res = (raster.getPixel(y,x-1,new double[3])[0] - raster.getPixel(y,x-1,new double[3])[0]);
+                    double[] resArr = new double[3];
                     Arrays.fill(resArr,res);
-                    raster.setPixel(y,x,resArr);
+                    arr[y][x] = resArr;
                 }
             }
+        for (int i = 1; i < raster.getHeight()-1; i++) {
+            for (int j = 1; j < raster.getWidth()-1; j++) {
+                raster.setPixel(j,i,arr[j][i]);
+            }
+        }
             pic.setData(raster);
-        });
-        local.start();
         return pic;
     }
     public static BufferedImage RSchmY(BufferedImage pic) {
         WritableRaster raster = pic.getRaster();
-        Thread local = new Thread(()->{
-            System.out.println("local");
-            for (int x = 1; x < pic.getHeight() - 1; x++) {
+        double[][][] arr = new double[pic.getHeight()][pic.getWidth()][3];
+
+        for (int x = 1; x < pic.getHeight() - 1; x++) {
                 for (int y = 1; y < pic.getWidth() - 1; y++) {
-                    int[] pix1 =  raster.getPixel(y,x,new int[3]);
-                    int[] pix2 = raster.getPixel(y-1,x,new int[3]);
-                    int res = pix1[0] - pix2[0];
-                    int[] resArr = new int[3];
+                    double res = (raster.getPixel(y,x,new double[3])[0] - raster.getPixel(y-1,x,new double[3])[0]);
+                    double[] resArr = new double[3];
                     Arrays.fill(resArr,res);
-                    raster.setPixel(y,x,resArr);
+                    arr[y][x] = resArr;
                 }
             }
-            pic.setData(raster);
-        });
-        local.start();
+        for (int i = 1; i < raster.getHeight()-1; i++) {
+            for (int j = 1; j < raster.getWidth()-1; j++) {
+                raster.setPixel(j,i,arr[j][i]);
+            }
+        }
+        pic.setData(raster);
         return pic;
     }
 
 
     private int[][] DWTDOGX(BufferedImage pic){
+        WritableRaster raster = pic.getRaster();
         int[][] DWT = new int[mX][nX];
         for (int y = 0; y < kY; y++) {
             for (int m = 0; m < mX; m++) {
                 for (int n = 0; n < nX; n++) {
                     int summ = 0;
-                    for (int x = 0; x < Xquantity-1; x++)summ += diskretDog(x,Math.pow(2,m-1),n)*(pic.getRGB(x,y));
+                    for (int x = 0; x < Xquantity-1; x++)summ += diskretDog(x,Math.pow(2,m-1),n)*(raster.getPixel(x,y,new int[3])[0]);
                     DWT[m][n] = (summ);
                 }
             }
@@ -225,6 +221,7 @@ public class Veivlet {
         return DWT;
     }
     private BufferedImage dXDOG(BufferedImage pic){
+        WritableRaster raster = pic.getRaster();
         int[][] DWTDOGX = DWTDOGX(pic);
         for (int y = 0; y < kY; y++) {
             for (int x = 0; x < kX; x++) {
@@ -234,21 +231,26 @@ public class Veivlet {
                         summ+=diskretDogP1(x,Math.pow(2,i-1),j)*DWTDOGX[i][j];
                     }
                 }
-                pic.setRGB(x,y, summ);
+                int[] pix = raster.getPixel(x,y,new int[3]);
+                if (summ>255) summ -= 255;
+                Arrays.fill(pix,summ);
+                raster.setPixel(x,y,pix);
             }
         }
+        pic.setData(raster);
         return pic;
     }
 
 
     private int[][] DWTDOGY(BufferedImage pic){
+        WritableRaster raster = pic.getRaster();
         int[][] DWT = new int[Ydecomposition][Yquantity-1];
         for (int x = 0; x < kX; x++) {
             for (int m = 0; m < mY; m++) {
                 for (int n = 0; n < nY; n++) {
                     int summ = 0;
                     for (int y = 0; y < Yquantity-1; y++) {
-                        summ+= diskretDog(x,Math.pow(2,m-1),n)*(pic.getRGB(x,y));
+                        summ+= diskretDog(x,Math.pow(2,m-1),n)*(raster.getPixel(x,y,new int[3])[0]);
                     }
                     DWT[m][n] = (summ);
                 }
@@ -257,6 +259,7 @@ public class Veivlet {
         return DWT;
     }
     private BufferedImage dYDOG(BufferedImage pic){
+        WritableRaster raster = pic.getRaster();
         int[][] DWTDOGY = DWTDOGY(pic);
         for (int x = 0; x < kX; x++) {
             for (int y = 0; y < kY; y++) {
@@ -266,9 +269,13 @@ public class Veivlet {
                         summ+=diskretDogP1(y,Math.pow(2,i-1),j)*DWTDOGY[i][j];
                     }
                 }
-                pic.setRGB(x,y, summ);
+                int[] pix = raster.getPixel(x,y,new int[3]);
+                if (summ<255) summ-=255;
+                Arrays.fill(pix,summ);
+                raster.setPixel(x,y, pix);
             }
         }
+        pic.setData(raster);
         return pic;
     }
     private void getDogged(){
@@ -291,8 +298,8 @@ public class Veivlet {
        });
        DOG.start();
     }
-    private static int[][] getSubMatrix(int[][] matrix, int firstRow, int destRow, int firstCol, int destCol){
-        int[][] newMatrix = new int[destRow-firstRow+1][destCol-firstCol+1];
+    private static double[][] getSubMatrix(double[][] matrix, int firstRow, int destRow, int firstCol, int destCol){
+        double[][] newMatrix = new double[destRow-firstRow+1][destCol-firstCol+1];
         for (int i = 0; i < newMatrix.length; i++, firstRow++) {
             int col = firstCol;
             for (int j = 0; j < newMatrix[i].length; j++, col++) {
