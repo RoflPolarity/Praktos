@@ -232,7 +232,6 @@ public class Veivlet {
                     }
                 }
                 int[] pix = raster.getPixel(x,y,new int[3]);
-                if (summ>255) summ -= 255;
                 Arrays.fill(pix,summ);
                 raster.setPixel(x,y,pix);
             }
