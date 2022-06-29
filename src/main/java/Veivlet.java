@@ -206,10 +206,12 @@ public class Veivlet {
     }
 
 
-    private int[][] DWTDOGX(BufferedImage pic){
+    private int[][][] DWTDOGX(BufferedImage pic){
         WritableRaster raster = pic.getRaster();
-        int[][] DWT = new int[mX][nX];
+
+        int[][][] DWTDOGX = new int[kY][mX][nX];
         for (int y = 0; y < kY; y++) {
+            int[][] DWT = new int[mX][nX];
             for (int m = 0; m < mX; m++) {
                 for (int n = 0; n < nX; n++) {
                     int summ = 0;
@@ -217,18 +219,19 @@ public class Veivlet {
                     DWT[m][n] = (summ);
                 }
             }
+            DWTDOGX[y] = DWT;
         }
-        return DWT;
+        return DWTDOGX;
     }
     private BufferedImage dXDOG(BufferedImage pic){
         WritableRaster raster = pic.getRaster();
-        int[][] DWTDOGX = DWTDOGX(pic);
+        int[][][] DWTDOGX = DWTDOGX(pic);
         for (int y = 0; y < kY; y++) {
             for (int x = 0; x < kX; x++) {
                 int summ = 0;
                 for (int i = 0; i < Xdecomposition; i++) {
                     for (int j = 0; j < Xquantity-1; j++) {
-                        summ+=diskretDogP1(x,Math.pow(2,i-1),j)*DWTDOGX[i][j];
+                        summ+=diskretDogP1(x,Math.pow(2,i-1),j)*DWTDOGX[y][i][j];
                     }
                 }
                 int[] pix = raster.getPixel(x,y,new int[3]);
@@ -241,35 +244,34 @@ public class Veivlet {
     }
 
 
-    private int[][] DWTDOGY(BufferedImage pic){
+    private int[][][] DWTDOGY(BufferedImage pic){
         WritableRaster raster = pic.getRaster();
-        int[][] DWT = new int[Ydecomposition][Yquantity-1];
+        int[][][]DWTDOGY = new int[kX][mY][nY];
         for (int x = 0; x < kX; x++) {
+            int[][] DWT = new int[mY][nY];
             for (int m = 0; m < mY; m++) {
                 for (int n = 0; n < nY; n++) {
                     int summ = 0;
-                    for (int y = 0; y < Yquantity-1; y++) {
-                        summ+= diskretDog(x,Math.pow(2,m-1),n)*(raster.getPixel(x,y,new int[3])[0]);
-                    }
+                    for (int y = 0; y < Yquantity-1; y++) summ+= diskretDog(x,Math.pow(2,m-1),n)*(raster.getPixel(x,y,new int[3])[0]);
                     DWT[m][n] = (summ);
                 }
             }
+            DWTDOGY[x] = DWT;
         }
-        return DWT;
+        return DWTDOGY;
     }
     private BufferedImage dYDOG(BufferedImage pic){
         WritableRaster raster = pic.getRaster();
-        int[][] DWTDOGY = DWTDOGY(pic);
+        int[][][] DWTDOGY = DWTDOGY(pic);
         for (int x = 0; x < kX; x++) {
             for (int y = 0; y < kY; y++) {
                 int summ = 0;
                 for (int i = 0; i < Ydecomposition; i++) {
                     for (int j = 0; j < Yquantity-1; j++) {
-                        summ+=diskretDogP1(y,Math.pow(2,i-1),j)*DWTDOGY[i][j];
+                        summ+=diskretDogP1(y,Math.pow(2,i-1),j)*DWTDOGY[x][i][j];
                     }
                 }
                 int[] pix = raster.getPixel(x,y,new int[3]);
-                if (summ<255) summ-=255;
                 Arrays.fill(pix,summ);
                 raster.setPixel(x,y, pix);
             }
