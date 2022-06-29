@@ -53,8 +53,8 @@ public class Veivlet {
         ImageIO.write(sobelImg,getFileExtension(file), new File(directory.getAbsolutePath()+"\\Sobel." + getFileExtension(file)));
         GrabImg = NormFactor(grab(RSchmX(ImageIO.read(new File(path))), RSchmY(ImageIO.read(new File(path))), deepCopy(image)));
         ImageIO.write(GrabImg, getFileExtension(file), new File(directory.getAbsolutePath() + "\\test." + getFileExtension(file)));
-        DxDog = dXDOG(deepCopy(image));
-        DyDog = dYDOG(deepCopy(image));
+        DxDog = dXDOG(deepCopy(normImg));
+        DyDog = dYDOG(deepCopy(normImg));
         VeivletDog = NormFactor(grab(deepCopy(DxDog),deepCopy(DyDog),deepCopy(image)));
         ImageIO.write(DxDog,getFileExtension(file), new File(directory.getAbsolutePath()+"\\DOGdx." + getFileExtension(file)));
         System.out.println("DxDog записан");
