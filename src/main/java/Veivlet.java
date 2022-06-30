@@ -372,7 +372,7 @@ public class Veivlet {
                 e.printStackTrace();
             }
         });
-        DOG.start();
+        MHAT.start();
     }
     private static double[][] getSubMatrix(double[][] matrix, int firstRow, int destRow, int firstCol, int destCol){
         double[][] newMatrix = new double[destRow-firstRow+1][destCol-firstCol+1];
