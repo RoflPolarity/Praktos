@@ -11,35 +11,18 @@ import java.util.Arrays;
 import java.util.Random;
 
 public class Veivlet {
-    private final int Xdecomposition, Xquantity, a = 3;
-    private final int Ydecomposition, Yquantity;
+    private final int Xdecomposition, Xquantity, a = 3,Ydecomposition, Yquantity;
     private Thread DOG, MHAT, WAVE;
     int[] nX, mX,kX,mY, nY, kY;
-    private final BufferedImage image;
-    private final BufferedImage noiseImg;
-    private final BufferedImage normImg;
-    private final BufferedImage sobelImg;
-    private BufferedImage GrabImg;
-    private BufferedImage DxDog;
-    private BufferedImage DyDog;
-    private BufferedImage VeivletDog;
-    private BufferedImage DxMHAT;
-    private BufferedImage DyMHAT;
-    private BufferedImage VeivletMHAT;
-    private BufferedImage DxWAVE;
-    private BufferedImage DyWAVE;
-    private BufferedImage VeivletWAVE;
-    private String path;
+    private final BufferedImage image,noiseImg,normImg,sobelImg;
+    private BufferedImage GrabImg,VeivletDog,VeivletMHAT,VeivletWAVE, PorogDOG, PorogMHAT, PorogWave;
     private File file, directory;
     public Veivlet(String path) throws IOException {
         String username = System.getProperty("user.name");
-        this.path = path;
         file = new File(path);
         directory = new File("C:\\Users\\" + username +"\\Desktop\\"+file.getName().split("\\.")[0]);
         if (!directory.exists())directory.mkdir();
         image = ImageIO.read(file);
-
-
         Xquantity = image.getWidth();
         Yquantity = image.getHeight();
         Xdecomposition = (int) ((Math.log(Xquantity)/Math.log(2))-1);
@@ -50,8 +33,6 @@ public class Veivlet {
         mY = new int[Ydecomposition+1];for (int i = 0; i<mY.length;i++)mY[i] = i;
         nY = new int[Yquantity];for (int i = 0; i < nY.length; i++)nY[i] = i;
         kY = new int[Yquantity];for (int i = 0; i < kY.length; i++)kY[i] = i;
-
-
         noiseImg = MassNoise(5, deepCopy(image));
         ImageIO.write(noiseImg,getFileExtension(file), new File(directory.getAbsolutePath()+"\\noise." + getFileExtension(file)));
         normImg = NormFactor(deepCopy(noiseImg));
@@ -68,6 +49,9 @@ public class Veivlet {
     public Image getNormImg(){return SwingFXUtils.toFXImage(normImg,null);}
     public Image getsobelImg(){return SwingFXUtils.toFXImage(sobelImg,null);}
     public Image getGrabImg(){return SwingFXUtils.toFXImage(GrabImg,null);}
+    public Image getDOGImg(){return SwingFXUtils.toFXImage(VeivletDog,null);}
+    public Image getMHATImg(){return SwingFXUtils.toFXImage(VeivletMHAT,null);}
+    public Image getWAVEImg(){return SwingFXUtils.toFXImage(VeivletWAVE,null);}
 
     private static String getFileExtension(File file) {
         String fileName = file.getName();
@@ -284,14 +268,10 @@ public class Veivlet {
         BufferedImage norm = deepCopy(normImg);
        DOG = new Thread(()->{
            try {
-               DxDog = dXDOG(deepCopy(norm));
-               DyDog = dYDOG(deepCopy(norm));
-               VeivletDog = NormFactor(grab(deepCopy(DxDog), deepCopy(DyDog), deepCopy(image)));
-               ImageIO.write(DxDog, getFileExtension(file), new File(directory.getAbsolutePath() + "\\DOGdx." + getFileExtension(file)));
-               System.out.println("DxDog записан");
-               ImageIO.write(DyDog, getFileExtension(file), new File(directory.getAbsolutePath() + "\\DOGdy." + getFileExtension(file)));
-               System.out.println("DyDog записан");
+               VeivletDog = NormFactor(grab(dXDOG(deepCopy(norm)), dYDOG(deepCopy(norm)), deepCopy(image)));
+               PorogDOG = getPorog(deepCopy(VeivletDog));
                ImageIO.write(VeivletDog, getFileExtension(file), new File(directory.getAbsolutePath() + "\\DOG." + getFileExtension(file)));
+               ImageIO.write(PorogDOG,getFileExtension(file),new File(directory.getAbsolutePath()+"\\PorogDOG."+getFileExtension(file)));
                System.out.println("Dog записан");
            }catch (Exception e){
                e.printStackTrace();
@@ -372,14 +352,10 @@ public class Veivlet {
     private void getMHATed(){
         MHAT = new Thread(()->{
             try {
-                DxMHAT = dXMH(deepCopy(normImg));
-                DyMHAT = dYMH(deepCopy(normImg));
-                VeivletMHAT = NormFactor(grab(deepCopy(DxMHAT), deepCopy(DyMHAT), deepCopy(image)));
-                ImageIO.write(DxMHAT, getFileExtension(file), new File(directory.getAbsolutePath() + "\\MHATdx." + getFileExtension(file)));
-                System.out.println("DxMHAT записан");
-                ImageIO.write(DyMHAT, getFileExtension(file), new File(directory.getAbsolutePath() + "\\MHATdy." + getFileExtension(file)));
-                System.out.println("DyMHAT записан");
+                VeivletMHAT = NormFactor(grab(dXMH(deepCopy(normImg)), dYMH(deepCopy(normImg)), deepCopy(image)));
+                PorogMHAT = getPorog(deepCopy(VeivletMHAT));
                 ImageIO.write(VeivletMHAT, getFileExtension(file), new File(directory.getAbsolutePath() + "\\MHAT." + getFileExtension(file)));
+                ImageIO.write(PorogMHAT,getFileExtension(file),new File(directory.getAbsolutePath()+"\\PorogMHAT."+getFileExtension(file)));
                 System.out.println("MHAT записан");
             }catch (Exception e){
                 e.printStackTrace();
@@ -387,7 +363,6 @@ public class Veivlet {
         });
         MHAT.start();
     }
-
 
     private double[][][] DWTWAVEX(BufferedImage pic){
         WritableRaster raster = pic.getRaster();
@@ -461,14 +436,10 @@ public class Veivlet {
     private void getWAVEed(){
         WAVE = new Thread(()->{
             try {
-                DxWAVE = dXWAVE(deepCopy(normImg));
-                DyWAVE = dYWAVE(deepCopy(normImg));
-                VeivletWAVE = NormFactor(grab(deepCopy(DxWAVE), deepCopy(DyWAVE), deepCopy(image)));
-                ImageIO.write(DxWAVE, getFileExtension(file), new File(directory.getAbsolutePath() + "\\WAVEdx." + getFileExtension(file)));
-                System.out.println("DxWAVE записан");
-                ImageIO.write(DyWAVE, getFileExtension(file), new File(directory.getAbsolutePath() + "\\WAVEdy." + getFileExtension(file)));
-                System.out.println("DyWAVE записан");
+                VeivletWAVE = NormFactor(grab(dXWAVE(deepCopy(normImg)), dYWAVE(deepCopy(normImg)), deepCopy(image)));
+                PorogWave = getPorog(deepCopy(VeivletWAVE));
                 ImageIO.write(VeivletWAVE, getFileExtension(file), new File(directory.getAbsolutePath() + "\\WAVE." + getFileExtension(file)));
+                ImageIO.write(PorogWave,getFileExtension(file),new File(directory.getAbsolutePath()+"\\PorogWAVE."+getFileExtension(file)));
                 System.out.println("WAVE записан");
             }catch (Exception e){
                 e.printStackTrace();
@@ -477,6 +448,18 @@ public class Veivlet {
         WAVE.start();
     }
 
+    private BufferedImage getPorog(BufferedImage pic){
+        WritableRaster raster = pic.getRaster();
+        for (int i = 0; i < pic.getHeight(); i++) {
+            for (int j = 0; j < pic.getWidth(); j++) {
+                double[] pix = raster.getPixel(i,j,new double[3]);
+                Arrays.fill(pix,pix[0]/10.5);
+                raster.setPixel(i,j,pix);
+            }
+        }
+        pic.setData(raster);
+        return deepCopy(pic);
+    }
     private static double[][] getSubMatrix(double[][] matrix, int firstRow, int destRow, int firstCol, int destCol){
         double[][] newMatrix = new double[destRow-firstRow+1][destCol-firstCol+1];
         for (int i = 0; i < newMatrix.length; i++, firstRow++) {
