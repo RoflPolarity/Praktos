@@ -143,7 +143,9 @@ public class Veivlet {
         return deepCopy(pic);
     }
     public BufferedImage grab(BufferedImage DifferentX, BufferedImage DifferentY, BufferedImage pic){
-            WritableRaster rasterX = DifferentX.getRaster(), rasterY = DifferentY.getRaster(), res = pic.getRaster();
+            WritableRaster rasterX = DifferentX.getRaster();
+            WritableRaster rasterY = DifferentY.getRaster();
+            WritableRaster res = pic.getRaster();
             for (int x = 0; x <DifferentX.getWidth()-1 ; x++) {
                 for (int y = 0; y < DifferentY.getWidth()-1; y++) {
                     int[] pix1 = rasterX.getPixel(x, y, new int[3]);
@@ -155,7 +157,7 @@ public class Veivlet {
                 }
             }
             pic.setData(res);
-            return pic;
+            return deepCopy(pic);
     }
 
     public static BufferedImage RSchmX(BufferedImage pic){
@@ -197,7 +199,6 @@ public class Veivlet {
         pic.setData(raster);
         return pic;
     }
-
 
     private double[][][] DWTDOGX(BufferedImage pic){
         WritableRaster raster = pic.getRaster();
@@ -269,10 +270,11 @@ public class Veivlet {
         return deepCopy(pic);
     }
     private void getDogged(){
+        BufferedImage norm = deepCopy(normImg);
        DOG = new Thread(()->{
            try {
-               DxDog = dXDOG(deepCopy(normImg));
-               DyDog = dYDOG(deepCopy(normImg));
+               DxDog = dXDOG(deepCopy(norm));
+               DyDog = dYDOG(deepCopy(norm));
                VeivletDog = NormFactor(grab(deepCopy(DxDog), deepCopy(DyDog), deepCopy(image)));
                ImageIO.write(DxDog, getFileExtension(file), new File(directory.getAbsolutePath() + "\\DOGdx." + getFileExtension(file)));
                System.out.println("DxDog записан");
@@ -305,7 +307,7 @@ public class Veivlet {
     }
     private BufferedImage dXMH(BufferedImage pic){
         WritableRaster raster = pic.getRaster();
-        double[][][] DWTMHX = DWTDOGX(pic);
+        double[][][] DWTMHX = DWTMHX(pic);
         for (int y : kY) {
             for (int x : kX) {
                 double[] pix = new double[3];
@@ -339,7 +341,7 @@ public class Veivlet {
     }
     private BufferedImage dYMH(BufferedImage pic){
         WritableRaster raster = pic.getRaster();
-        int[][][] DWTMHY = DWTDOGY(pic);
+        int[][][] DWTMHY = DWTMHY(pic);
         for (int x : kX) {
             for (int y : kY) {
                 int summ = 0;
@@ -361,7 +363,7 @@ public class Veivlet {
             try {
                 DxMHAT = dXMH(deepCopy(normImg));
                 DyMHAT = dYMH(deepCopy(normImg));
-                VeivletMHAT = NormFactor(grab(deepCopy(DxDog), deepCopy(DyDog), deepCopy(image)));
+                VeivletMHAT = NormFactor(grab(deepCopy(DxMHAT), deepCopy(DyMHAT), deepCopy(image)));
                 ImageIO.write(DxMHAT, getFileExtension(file), new File(directory.getAbsolutePath() + "\\MHATdx." + getFileExtension(file)));
                 System.out.println("DxMHAT записан");
                 ImageIO.write(DyMHAT, getFileExtension(file), new File(directory.getAbsolutePath() + "\\MHATdy." + getFileExtension(file)));
