@@ -104,6 +104,7 @@ public class Veivlet {
     private double veivletDogP1(double x){return  (0.125 * x * Math.pow(Math.E,-Math.pow(x,2)/8) - x*Math.pow(Math.E,-Math.pow(x,2)/2));}
     private double diskretDog(int x, double m,int n){return (Math.pow(a,-(m/2))*veivletDog((Math.pow(a,-m)*x-n))); }
     private double diskretDogP1(int x, double m,int n){ return (Math.pow(a,-(m/2))*veivletDogP1((Math.pow(a,-m)*x-n)));}
+
     private double veivletMHAT(double x){return (((2*Math.pow(Math.PI,-0.25))/Math.sqrt(3))*(1-Math.pow(x,2))*Math.pow(Math.E,-Math.pow(x,2)/2));}
     private double veivletMHATP1(double x){return ((2*Math.sqrt(3)*x*Math.pow(Math.E,-Math.pow(x,2)/2)*(Math.pow(x,2)-3))/(3*Math.pow(Math.PI,0.25)));}
     private double diskretMHAT(int x, double m, int n){return Math.pow(a,-m/2)*veivletMHAT((Math.pow(a,-m)*x-n));}
