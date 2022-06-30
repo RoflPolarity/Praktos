@@ -474,7 +474,7 @@ public class Veivlet {
                 e.printStackTrace();
             }
         });
-        MHAT.start();
+        WAVE.start();
     }
 
     private static double[][] getSubMatrix(double[][] matrix, int firstRow, int destRow, int firstCol, int destCol){
