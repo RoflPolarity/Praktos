@@ -7,6 +7,7 @@ import java.awt.image.ColorModel;
 import java.awt.image.WritableRaster;
 import java.io.File;
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Random;
 
@@ -107,8 +108,10 @@ public class Veivlet {
     private double veivletMHATP1(double x){return ((2*Math.sqrt(3)*x*Math.pow(Math.E,-Math.pow(x,2)/2)*(Math.pow(x,2)-3))/(3*Math.pow(Math.PI,0.25)));}
     private double diskretMHAT(int x, double m, int n){return Math.pow(a,-m/2)*veivletMHAT((Math.pow(a,-m)*x-n));}
     private double diskretMHATP1(int x, double m, int n){return Math.pow(a,-(m/2))*veivletMHATP1(Math.pow(a,-m)*x-n);}
+
+
     private double veivletWAVE(double x){return -x*Math.pow(Math.E,-Math.pow(x,2)/2);}
-    private double veivletWAVEP1(double x){return Math.pow(x,2)*Math.pow(Math.E,-Math.pow(x,2)/2)-Math.pow(Math.E,-0.5*Math.pow(x,2));}
+    private double veivletWAVEP1(double x){return Math.pow(x,2)*Math.pow(Math.E,-Math.pow(x,2)/2)-Math.pow(Math.E,-(0.5*Math.pow(x,2)));}
     private double diskretWave(int x, double m, int n){return Math.pow(a,-m/2)*veivletWAVE((Math.pow(a,-m)*x-n));}
     private double diskretWaveP1(int x, double m, int n){return Math.pow(a,-m/2)*veivletWAVEP1((Math.pow(a,-m)*x-n));}
 
@@ -229,11 +232,11 @@ public class Veivlet {
         pic.setData(raster);
         return deepCopy(pic);
     }
-    private int[][][] DWTDOGY(BufferedImage pic){
+    private double[][][] DWTDOGY(BufferedImage pic){
         WritableRaster raster = pic.getRaster();
-        int[][][]DWTDOGY = new int[kX.length][mY.length][nY.length];
+        double[][][]DWTDOGY = new double[kX.length][mY.length][nY.length];
         for (int x : kX) {
-            int[][] DWT = new int[mY.length][nY.length];
+            double[][] DWT = new double[mY.length][nY.length];
             for (int m : mY) {
                 for (int n : nY) {
                     for (int y = 0; y < Yquantity-1; y++){
@@ -247,7 +250,7 @@ public class Veivlet {
     }
     private BufferedImage dYDOG(BufferedImage pic){
         WritableRaster raster = pic.getRaster();
-        int[][][] DWTDOGY = DWTDOGY(pic);
+        double[][][] DWTDOGY = DWTDOGY(pic);
         for (int x : kX) {
             for (int y : kY) {
                 int summ = 0;
@@ -264,12 +267,23 @@ public class Veivlet {
         pic.setData(raster);
         return deepCopy(pic);
     }
+    private BufferedImage DOGPorog(BufferedImage pic){
+        WritableRaster raster = pic.getRaster();
+        for (int i = 0; i < pic.getHeight(); i++) {
+            for (int j = 0; j < pic.getWidth(); j++) {
+                double[] pix = raster.getPixel(i,j,new double[3]);
+                Arrays.fill(pix,pix[0]/10.5);
+                raster.setPixel(i,j,pix);
+            }
+        }
+        pic.setData(raster);
+        return deepCopy(pic);
+    }
     private void getDogged(){
-        BufferedImage norm = deepCopy(normImg);
        DOG = new Thread(()->{
            try {
-               VeivletDog = NormFactor(grab(dXDOG(deepCopy(norm)), dYDOG(deepCopy(norm)), deepCopy(image)));
-               PorogDOG = getPorog(deepCopy(VeivletDog));
+               VeivletDog = NormFactor(grab(dXDOG(deepCopy(normImg)), dYDOG(deepCopy(normImg)), deepCopy(image)));
+               PorogDOG = getPorog(DOGPorog(deepCopy(VeivletDog)));
                ImageIO.write(VeivletDog, getFileExtension(file), new File(directory.getAbsolutePath() + "\\DOG." + getFileExtension(file)));
                ImageIO.write(PorogDOG,getFileExtension(file),new File(directory.getAbsolutePath()+"\\PorogDOG."+getFileExtension(file)));
                System.out.println("Dog записан");
@@ -314,11 +328,11 @@ public class Veivlet {
         pic.setData(raster);
         return deepCopy(pic);
     }
-    private int[][][] DWTMHY(BufferedImage pic){
+    private double[][][] DWTMHY(BufferedImage pic){
         WritableRaster raster = pic.getRaster();
-        int[][][]DWTMHY = new int[kX.length][mY.length][nY.length];
+        double[][][]DWTMHY = new double[kX.length][mY.length][nY.length];
         for (int x : kX) {
-            int[][] DWT = new int[mY.length][nY.length];
+            double[][] DWT = new double[mY.length][nY.length];
             for (int m : mY) {
                 for (int n : nY) {
                     for (int y = 0; y < Yquantity-1; y++){
@@ -332,10 +346,10 @@ public class Veivlet {
     }
     private BufferedImage dYMH(BufferedImage pic){
         WritableRaster raster = pic.getRaster();
-        int[][][] DWTMHY = DWTMHY(pic);
+        double[][][] DWTMHY = DWTMHY(pic);
         for (int x : kX) {
             for (int y : kY) {
-                int summ = 0;
+                double summ = 0;
                 for (int i = 0; i < Ydecomposition; i++) {
                     for (int j = 0; j < Yquantity-1; j++) {
                         summ+=(diskretMHATP1(y,Math.pow(2,i-1),j)*DWTMHY[x][i][j]);
@@ -349,11 +363,23 @@ public class Veivlet {
         pic.setData(raster);
         return deepCopy(pic);
     }
+    private BufferedImage MHATPorog(BufferedImage pic){
+        WritableRaster raster = pic.getRaster();
+        for (int i = 0; i < pic.getHeight(); i++) {
+            for (int j = 0; j < pic.getWidth(); j++) {
+                double[] pix = raster.getPixel(i,j,new double[3]);
+                Arrays.fill(pix,pix[0]/21);
+                raster.setPixel(i,j,pix);
+            }
+        }
+        pic.setData(raster);
+        return deepCopy(pic);
+    }
     private void getMHATed(){
         MHAT = new Thread(()->{
             try {
                 VeivletMHAT = NormFactor(grab(dXMH(deepCopy(normImg)), dYMH(deepCopy(normImg)), deepCopy(image)));
-                PorogMHAT = getPorog(deepCopy(VeivletMHAT));
+                PorogMHAT = getPorog(MHATPorog(deepCopy(VeivletMHAT)));
                 ImageIO.write(VeivletMHAT, getFileExtension(file), new File(directory.getAbsolutePath() + "\\MHAT." + getFileExtension(file)));
                 ImageIO.write(PorogMHAT,getFileExtension(file),new File(directory.getAbsolutePath()+"\\PorogMHAT."+getFileExtension(file)));
                 System.out.println("MHAT записан");
@@ -398,11 +424,11 @@ public class Veivlet {
         pic.setData(raster);
         return deepCopy(pic);
     }
-    private int[][][] DWTWAVEY(BufferedImage pic){
+    private double[][][] DWTWAVEY(BufferedImage pic){
         WritableRaster raster = pic.getRaster();
-        int[][][]DWTWAVEY = new int[kX.length][mY.length][nY.length];
+        double[][][]DWTWAVEY = new double[kX.length][mY.length][nY.length];
         for (int x : kX) {
-            int[][] DWT = new int[mY.length][nY.length];
+            double[][] DWT = new double[mY.length][nY.length];
             for (int m : mY) {
                 for (int n : nY) {
                     for (int y = 0; y < Yquantity-1; y++){
@@ -416,10 +442,10 @@ public class Veivlet {
     }
     private BufferedImage dYWAVE(BufferedImage pic){
         WritableRaster raster = pic.getRaster();
-        int[][][] DWTWAVEY = DWTWAVEY(pic);
+        double[][][] DWTWAVEY = DWTWAVEY(pic);
         for (int x : kX) {
             for (int y : kY) {
-                int summ = 0;
+                double summ = 0;
                 for (int i = 0; i < Ydecomposition; i++) {
                     for (int j = 0; j < Yquantity-1; j++) {
                         summ+=(diskretWaveP1(y,Math.pow(2,i-1),j)*DWTWAVEY[x][i][j]);
@@ -433,11 +459,23 @@ public class Veivlet {
         pic.setData(raster);
         return deepCopy(pic);
     }
+    private BufferedImage WAVEPorog(BufferedImage pic){
+        WritableRaster raster = pic.getRaster();
+        for (int i = 0; i < pic.getHeight(); i++) {
+            for (int j = 0; j < pic.getWidth(); j++) {
+                double[] pix = raster.getPixel(i,j,new double[3]);
+                Arrays.fill(pix,pix[0]/23);
+                raster.setPixel(i,j,pix);
+            }
+        }
+        pic.setData(raster);
+        return deepCopy(pic);
+    }
     private void getWAVEed(){
         WAVE = new Thread(()->{
             try {
                 VeivletWAVE = NormFactor(grab(dXWAVE(deepCopy(normImg)), dYWAVE(deepCopy(normImg)), deepCopy(image)));
-                PorogWave = getPorog(deepCopy(VeivletWAVE));
+                PorogWave = getPorog(WAVEPorog(deepCopy(VeivletWAVE)));
                 ImageIO.write(VeivletWAVE, getFileExtension(file), new File(directory.getAbsolutePath() + "\\WAVE." + getFileExtension(file)));
                 ImageIO.write(PorogWave,getFileExtension(file),new File(directory.getAbsolutePath()+"\\PorogWAVE."+getFileExtension(file)));
                 System.out.println("WAVE записан");
@@ -453,7 +491,10 @@ public class Veivlet {
         for (int i = 0; i < pic.getHeight(); i++) {
             for (int j = 0; j < pic.getWidth(); j++) {
                 double[] pix = raster.getPixel(i,j,new double[3]);
-                Arrays.fill(pix,pix[0]/10.5);
+                if (pix[0]>90&&pix[0]<255){
+                    pix[0] = 255;
+                    Arrays.fill(pix,pix[0]);
+                }
                 raster.setPixel(i,j,pix);
             }
         }
