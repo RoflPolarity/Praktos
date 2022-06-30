@@ -214,7 +214,9 @@ public class Veivlet {
             double[][] DWT = new double[mX][nX];
             for (int m = 0; m < mX; m++) {
                 for (int n = 0; n < nX; n++) {
-                    for (int x = 0; x < Xquantity-1; x++)DWT[m][n]+= diskretDog(x,Math.pow(2,m-1),n)*(raster.getPixel(x,y,new int[3])[0]);
+                    for (int x = 0; x < Xquantity-1; x++){
+                        DWT[m][n]+= diskretDog(x,Math.pow(2,m-1),n)*(raster.getPixel(x,y,new int[3])[0]);
+                    }
                 }
             }
             DWTDOGX[y] = DWT;
@@ -224,7 +226,6 @@ public class Veivlet {
     private BufferedImage dXDOG(BufferedImage pic){
         WritableRaster raster = pic.getRaster();
         double[][][] DWTDOGX = DWTDOGX(pic);
-
         for (int y = 0; y < kY; y++) {
             for (int x = 0; x < kX; x++) {
                 double[] pix = new double[3];
@@ -269,7 +270,7 @@ public class Veivlet {
                         summ+=diskretDogP1(y,Math.pow(2,i-1),j)*DWTDOGY[x][i][j];
                     }
                 }
-                int[] pix = raster.getPixel(x,y,new int[3]);
+                double[] pix = raster.getPixel(x,y,new double[3]);
                 Arrays.fill(pix,summ);
                 raster.setPixel(x,y, pix);
             }
