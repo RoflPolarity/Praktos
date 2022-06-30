@@ -7,42 +7,66 @@
 <?import javafx.scene.layout.AnchorPane?>
 <?import javafx.scene.text.Font?>
 
-<AnchorPane maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="429.0" prefWidth="800.0" xmlns="http://javafx.com/javafx/18" xmlns:fx="http://javafx.com/fxml/1" fx:controller="Sample">
+<AnchorPane maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="683.0" prefWidth="800.0" xmlns="http://javafx.com/javafx/18" xmlns:fx="http://javafx.com/fxml/1" fx:controller="Sample">
    <children>
       <AnchorPane prefHeight="128.0" prefWidth="800.0" style="-fx-background-color: #000000;">
          <children>
             <Button fx:id="getFile" layoutX="14.0" layoutY="51.0" mnemonicParsing="false" text="Обзор" />
             <TextField fx:id="prievue" editable="false" layoutX="123.0" layoutY="87.0" prefHeight="26.0" prefWidth="662.0" />
             <Button fx:id="run" layoutX="14.0" layoutY="87.0" mnemonicParsing="false" text="Обработать" />
-            <Label layoutX="235.0" layoutY="12.0" text="RoflPictures" textFill="WHITE">
+            <Label layoutX="235.0" layoutY="12.0" text="WaveletPictures" textFill="WHITE">
                <font>
                   <Font name="Bodoni MT" size="62.0" />
                </font></Label>
          </children>
       </AnchorPane>
       <ImageView fx:id="MainPic" fitHeight="150.0" fitWidth="150.0" layoutX="12.0" layoutY="214.0" pickOnBounds="true" preserveRatio="true" />
-      <ImageView fx:id="normPic" fitHeight="175.0" fitWidth="185.0" layoutX="166.0" layoutY="214.0" pickOnBounds="true" preserveRatio="true" />
-      <ImageView fx:id="SobelPic" fitHeight="175.0" fitWidth="185.0" layoutX="367.0" layoutY="214.0" pickOnBounds="true" preserveRatio="true" />
-      <ImageView fx:id="testPic" fitHeight="173.0" fitWidth="185.0" layoutX="596.0" layoutY="214.0" pickOnBounds="true" preserveRatio="true" />
+      <ImageView fx:id="normPic" fitHeight="175.0" fitWidth="185.0" layoutX="184.0" layoutY="214.0" pickOnBounds="true" preserveRatio="true" />
+      <ImageView fx:id="SobelPic" fitHeight="175.0" fitWidth="185.0" layoutX="380.0" layoutY="214.0" pickOnBounds="true" preserveRatio="true" />
+      <ImageView fx:id="testPic" fitHeight="173.0" fitWidth="185.0" layoutX="597.0" layoutY="215.0" pickOnBounds="true" preserveRatio="true" />
       <Label layoutX="43.0" layoutY="142.0" text="Orginal">
          <font>
             <Font name="Bodoni MT" size="39.0" />
          </font>
       </Label>
-      <Label layoutX="185.0" layoutY="142.0" text="NoisePic">
+      <Label layoutX="185.0" layoutY="142.0" text="Dog wavelet">
          <font>
-            <Font name="Bodoni MT" size="39.0" />
+            <Font name="Bodoni MT" size="35.0" />
          </font>
       </Label>
-      <Label layoutX="389.0" layoutY="142.0" text="SobelPic">
+      <Label layoutX="369.0" layoutY="142.0" text="Wave wavelet">
          <font>
-            <Font name="Bodoni MT" size="39.0" />
+            <Font name="Bodoni MT" size="35.0" />
          </font>
       </Label>
-      <Label layoutX="591.0" layoutY="142.0" text="GrabbedPic">
+      <Label layoutX="591.0" layoutY="142.0" text="Mhat vavelet">
          <font>
-            <Font name="Bodoni MT" size="39.0" />
+            <Font name="Bodoni MT" size="35.0" />
          </font>
       </Label>
+      <Label layoutX="191.0" layoutY="388.0" text="Dog порог">
+         <font>
+            <Font size="35.0" />
+         </font>
+      </Label>
+      <Label layoutX="377.0" layoutY="388.0" text="Wave порог">
+         <font>
+            <Font size="35.0" />
+         </font>
+      </Label>
+      <Label layoutX="596.0" layoutY="388.0" text="Mhat порог">
+         <font>
+            <Font size="35.0" />
+         </font>
+      </Label>
+      <Label layoutX="24.0" layoutY="396.0" text="SobelOperator">
+         <font>
+            <Font size="25.0" />
+         </font>
+      </Label>
+      <ImageView fx:id="Sobel" fitHeight="150.0" fitWidth="200.0" layoutX="5.0" layoutY="508.0" pickOnBounds="true" preserveRatio="true" />
+      <ImageView fx:id="DOGPorog" fitHeight="150.0" fitWidth="200.0" layoutX="177.0" layoutY="508.0" pickOnBounds="true" preserveRatio="true" />
+      <ImageView fx:id="WAVPorog" fitHeight="150.0" fitWidth="200.0" layoutX="373.0" layoutY="508.0" pickOnBounds="true" preserveRatio="true" />
+      <ImageView fx:id="MHATPorog" fitHeight="150.0" fitWidth="200.0" layoutX="589.0" layoutY="508.0" pickOnBounds="true" preserveRatio="true" />
    </children>
 </AnchorPane>

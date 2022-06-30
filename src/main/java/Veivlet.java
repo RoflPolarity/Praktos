@@ -50,6 +50,10 @@ public class Veivlet {
     public Image getNormImg(){return SwingFXUtils.toFXImage(normImg,null);}
     public Image getsobelImg(){return SwingFXUtils.toFXImage(sobelImg,null);}
     public Image getGrabImg(){return SwingFXUtils.toFXImage(GrabImg,null);}
+    public Image getDOGPOROG(){return SwingFXUtils.toFXImage(PorogDOG,null);}
+    public Image getMHATPOROG(){return SwingFXUtils.toFXImage(PorogMHAT,null);}
+    public Image getWAVEPOROG(){return SwingFXUtils.toFXImage(PorogWave,null);}
+
     public Image getDOGImg(){return SwingFXUtils.toFXImage(VeivletDog,null);}
     public Image getMHATImg(){return SwingFXUtils.toFXImage(VeivletMHAT,null);}
     public Image getWAVEImg(){return SwingFXUtils.toFXImage(VeivletWAVE,null);}

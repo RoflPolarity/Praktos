@@ -13,26 +13,38 @@ import java.util.concurrent.atomic.AtomicReference;
 
 public class Sample {
 
-    @FXML
-    private ImageView MainPic;
+        @FXML
+        private ImageView DOG;
 
-    @FXML
-    private ImageView SobelPic;
+        @FXML
+        private ImageView DOGPorog;
 
-    @FXML
-    private Button getFile;
+        @FXML
+        private ImageView MHAT;
 
-    @FXML
-    private ImageView normPic;
+        @FXML
+        private ImageView MHATPorog;
 
-    @FXML
-    private TextField prievue;
+        @FXML
+        private ImageView MainPic;
 
-    @FXML
-    private Button run;
+        @FXML
+        private ImageView Sobel;
 
-    @FXML
-    private ImageView testPic;
+        @FXML
+        private ImageView WAVE;
+
+        @FXML
+        private ImageView WAVPorog;
+
+        @FXML
+        private Button getFile;
+
+        @FXML
+        private TextField prievue;
+
+        @FXML
+        private Button run;
 
     @FXML
     void initialize(){
@@ -58,9 +70,12 @@ public class Sample {
         run.setOnAction(event -> {
             try {
                 Veivlet main = new Veivlet(new String(files.get().getAbsolutePath().getBytes(), "windows-1251"));
-                normPic.setImage(main.getNoiseImg());
-                SobelPic.setImage(main.getsobelImg());
-                testPic.setImage(main.getGrabImg());
+                WAVE.setImage(main.getWAVEImg());
+                DOG.setImage(main.getDOGImg());
+                MHAT.setImage(main.getMHATImg());
+                DOGPorog.setImage(main.getDOGPOROG());
+                MHATPorog.setImage(main.getMHATPOROG());
+                WAVE.setImage(main.getWAVEPOROG());
             } catch (IOException e) {
                 e.printStackTrace();
             }
