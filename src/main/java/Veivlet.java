@@ -11,9 +11,10 @@ import java.util.Arrays;
 import java.util.Random;
 
 public class Veivlet {
-    private final int Xdecomposition, Xquantity, a = 3,nX, mX,kX;
-    private final int Ydecomposition, Yquantity, mY, nY, kY;
+    private final int Xdecomposition, Xquantity, a = 3;
+    private final int Ydecomposition, Yquantity;
     private Thread DOG;
+    int[] nX, mX,kX,mY, nY, kY;
     private final BufferedImage image;
     private final BufferedImage noiseImg;
     private final BufferedImage normImg;
@@ -37,12 +38,12 @@ public class Veivlet {
         Yquantity = image.getHeight();
         Xdecomposition = (int) ((Math.log(Xquantity)/Math.log(2))-1);
         Ydecomposition = (int) ((Math.log(Yquantity)/Math.log(2))-1);
-        nX = Xquantity-1;
-        mX = Xdecomposition;
-        kX = Xquantity-1;
-        mY = Ydecomposition;
-        nY = Yquantity-1;
-        kY = Yquantity-1;
+        nX = new int[Xquantity];for (int i = 0; i < nX.length; i++)nX[i] = i;
+        mX = new int[Xdecomposition+1];for (int i = 0; i < mX.length; i++)mX[i] = i;
+        kX = new int[Xquantity];for (int i = 0; i < kX.length; i++)kX[i] = i;
+        mY = new int[Ydecomposition+1];for (int i = 0; i<mY.length;i++)mY[i] = i;
+        nY = new int[Yquantity];for (int i = 0; i < nY.length; i++)nY[i] = i;
+        kY = new int[Yquantity];for (int i = 0; i < kY.length; i++)kY[i] = i;
 
 
         noiseImg = MassNoise(5, deepCopy(image));
@@ -88,10 +89,10 @@ public class Veivlet {
     }
     public static BufferedImage NormFactor(BufferedImage pic){
         WritableRaster raster = pic.getRaster();
-        double min = raster.getPixel(0,0,new double[3])[0], max = raster.getPixel(0,0,new double[3])[0];
+        int min = raster.getPixel(0,0,new int[3])[0], max = raster.getPixel(0,0,new int[3])[0];
         for (int i = 0; i < pic.getHeight(); i++)for (int j = 0; j < pic.getWidth(); j++){
-                if (raster.getPixel(i,j,new double[3])[0]<min)min = raster.getPixel(i,j,new double[3])[0];
-                if (raster.getPixel(i,j,new double[3])[0]>max)max = raster.getPixel(i,j,new double[3])[0];
+                if (raster.getPixel(i,j,new int[3])[0]<min)min = raster.getPixel(i,j,new int[3])[0];
+                if (raster.getPixel(i,j,new double[3])[0]>max)max = raster.getPixel(i,j,new int[3])[0];
             }
         for (int i = 0; i < pic.getHeight(); i++) {
             for (int j = 0; j < pic.getWidth(); j++) {
@@ -153,8 +154,8 @@ public class Veivlet {
     }
     public BufferedImage grab(BufferedImage DifferentX, BufferedImage DifferentY, BufferedImage pic){
             WritableRaster rasterX = DifferentX.getRaster(), rasterY = DifferentY.getRaster(), res = pic.getRaster();
-            for (int x = 0; x < kY; x++) {
-                for (int y = 0; y < kX; y++) {
+            for (int x = 0; x <DifferentX.getWidth()-1 ; x++) {
+                for (int y = 0; y < DifferentY.getWidth()-1; y++) {
                     int[] pix1 = rasterX.getPixel(x, y, new int[3]);
                     int[] pix2 = rasterY.getPixel(x, y, new int[3]);
                     double[] result = new double[3];
@@ -209,11 +210,11 @@ public class Veivlet {
 
     private double[][][] DWTDOGX(BufferedImage pic){
         WritableRaster raster = pic.getRaster();
-        double[][][] DWTDOGX = new double[kY][mX][nX];
-        for (int y = 0; y < kY; y++) {
-            double[][] DWT = new double[mX][nX];
-            for (int m = 0; m < mX; m++) {
-                for (int n = 0; n < nX; n++) {
+        double[][][] DWTDOGX = new double[kY.length][mX.length][nX.length];
+        for (int y : kY) {
+            double[][] DWT = new double[mX.length][nX.length];
+            for (int m : mX) {
+                for (int n : nX) {
                     for (int x = 0; x < Xquantity-1; x++){
                         DWT[m][n]+= diskretDog(x,Math.pow(2,m-1),n)*(raster.getPixel(x,y,new int[3])[0]);
                     }
@@ -226,30 +227,30 @@ public class Veivlet {
     private BufferedImage dXDOG(BufferedImage pic){
         WritableRaster raster = pic.getRaster();
         double[][][] DWTDOGX = DWTDOGX(pic);
-        for (int y = 0; y < kY; y++) {
-            for (int x = 0; x < kX; x++) {
+        for (int y : kY) {
+            for (int x : kX) {
                 double[] pix = new double[3];
                 for (int i = 0; i < Xdecomposition; i++) {
                     for (int j = 0; j < Xquantity-1; j++) {
                         pix[0]+=diskretDogP1(x,Math.pow(2,i-1),j)*DWTDOGX[y][i][j];
                     }
                 }
-                Arrays.fill(pix,pix[0]);
+                Arrays.fill(pix,Math.abs(pix[0]));
                 raster.setPixel(x,y,pix);
             }
         }
         pic.setData(raster);
-        return pic;
+        return deepCopy(pic);
     }
 
 
     private int[][][] DWTDOGY(BufferedImage pic){
         WritableRaster raster = pic.getRaster();
-        int[][][]DWTDOGY = new int[kX][mY][nY];
-        for (int x = 0; x < kX; x++) {
-            int[][] DWT = new int[mY][nY];
-            for (int m = 0; m < mY; m++) {
-                for (int n = 0; n < nY; n++) {
+        int[][][]DWTDOGY = new int[kX.length][mY.length][nY.length];
+        for (int x : kX) {
+            int[][] DWT = new int[mY.length][nY.length];
+            for (int m : mY) {
+                for (int n : nY) {
                     for (int y = 0; y < Yquantity-1; y++){
                         DWT[m][n] += diskretDog(y,Math.pow(2,m-1),n)*(raster.getPixel(x,y,new int[3])[0]);
                     }
@@ -262,21 +263,21 @@ public class Veivlet {
     private BufferedImage dYDOG(BufferedImage pic){
         WritableRaster raster = pic.getRaster();
         int[][][] DWTDOGY = DWTDOGY(pic);
-        for (int x = 0; x < kX; x++) {
-            for (int y = 0; y < kY; y++) {
+        for (int x : kX) {
+            for (int y : kY) {
                 int summ = 0;
                 for (int i = 0; i < Ydecomposition; i++) {
                     for (int j = 0; j < Yquantity-1; j++) {
-                        summ+=diskretDogP1(y,Math.pow(2,i-1),j)*DWTDOGY[x][i][j];
+                        summ+=(diskretDogP1(y,Math.pow(2,i-1),j)*DWTDOGY[x][i][j]);
                     }
                 }
                 double[] pix = raster.getPixel(x,y,new double[3]);
-                Arrays.fill(pix,summ);
+                Arrays.fill(pix,Math.abs(summ));
                 raster.setPixel(x,y, pix);
             }
         }
         pic.setData(raster);
-        return pic;
+        return deepCopy(pic);
     }
     private void getDogged(){
        DOG = new Thread(()->{
