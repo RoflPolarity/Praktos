@@ -13,7 +13,7 @@ import java.util.Random;
 public class Veivlet {
     private final int Xdecomposition, Xquantity, a = 3;
     private final int Ydecomposition, Yquantity;
-    private Thread DOG;
+    private Thread DOG, MHAT;
     int[] nX, mX,kX,mY, nY, kY;
     private final BufferedImage image;
     private final BufferedImage noiseImg;
@@ -23,6 +23,9 @@ public class Veivlet {
     private BufferedImage DxDog;
     private BufferedImage DyDog;
     private BufferedImage VeivletDog;
+    private BufferedImage DxMHAT;
+    private BufferedImage DyMHAT;
+    private BufferedImage VeivletMHAT;
     private String path;
     private File file, directory;
     public Veivlet(String path) throws IOException {
@@ -55,6 +58,7 @@ public class Veivlet {
         GrabImg = NormFactor(grab(RSchmX(deepCopy(image)), RSchmY(deepCopy(image)), deepCopy(image)));
         ImageIO.write(GrabImg, getFileExtension(file), new File(directory.getAbsolutePath() + "\\test." + getFileExtension(file)));
         getDogged();
+        getMHATed();
     }
     public Image getNoiseImg(){return SwingFXUtils.toFXImage(noiseImg,null);}
     public Image getNormImg(){return SwingFXUtils.toFXImage(normImg,null);}
@@ -109,24 +113,10 @@ public class Veivlet {
     private double veivletDogP1(double x){return  (0.125 * x * Math.pow(Math.E,-Math.pow(x,2)/8) - x*Math.pow(Math.E,-Math.pow(x,2)/2));}
     private double diskretDog(int x, double m,int n){return (Math.pow(a,-(m/2))*veivletDog((Math.pow(a,-m)*x-n))); }
     private double diskretDogP1(int x, double m,int n){ return (Math.pow(a,-(m/2))*veivletDogP1((Math.pow(a,-m)*x-n)));}
-    private static BufferedImage veivletMHAT(BufferedImage pic){
-        for (int i = 0; i < pic.getWidth(); i++) {
-            for (int j = 0; j < pic.getHeight(); j++) {
-                int x = Math.abs(pic.getRGB(i,j));
-                pic.setRGB(i,j,(int) (((2*Math.pow(Math.PI,-0.25))/Math.sqrt(3))*(1-Math.pow(x,2))*Math.pow(Math.E,- Math.pow(x,2)/2)));
-            }
-        }
-        return pic;
-    }
-    private static BufferedImage veivletMHATP(BufferedImage pic){
-        for (int i = 0; i < pic.getWidth(); i++) {
-            for (int j = 0; j < pic.getHeight(); j++) {
-                int x = Math.abs(pic.getRGB(i,j));
-                pic.setRGB(i,j,(int) ((2*Math.sqrt(3)*x*Math.pow(Math.E,-Math.pow(x,2)/2)*(Math.pow(x,2)-3))/(3*Math.pow(Math.PI,0.25))));
-            }
-        }
-        return pic;
-    }
+    private double veivletMHAT(double x){return (((2*Math.pow(Math.PI,-0.25))/Math.sqrt(3))*(1-Math.pow(x,2))*Math.pow(Math.E,-Math.pow(x,2)/2));}
+    private double veivletMHATP1(double x){return ((2*Math.sqrt(3)*x*Math.pow(Math.E,-Math.pow(x,2)/2)*(Math.pow(x,2)-3))/(3*Math.pow(Math.PI,0.25)));}
+    private double diskretMHAT(int x, double m, int n){return Math.pow(a,-m/2)*veivletMHAT((Math.pow(a,-m)*x-n));}
+    private double diskretMHATP1(int x, double m, int n){return Math.pow(a,-(m/2))*veivletDogP1(Math.pow(a,-m)*x-n);}
     public static BufferedImage sobelOperator(BufferedImage pic) {
         WritableRaster raster = pic.getRaster();
         int[][] MGx = {{1, 0, -1},
@@ -167,6 +157,7 @@ public class Veivlet {
             pic.setData(res);
             return pic;
     }
+
     public static BufferedImage RSchmX(BufferedImage pic){
         WritableRaster raster = pic.getRaster();
         double[][][] arr = new double[pic.getHeight()][pic.getWidth()][3];
@@ -242,8 +233,6 @@ public class Veivlet {
         pic.setData(raster);
         return deepCopy(pic);
     }
-
-
     private int[][][] DWTDOGY(BufferedImage pic){
         WritableRaster raster = pic.getRaster();
         int[][][]DWTDOGY = new int[kX.length][mY.length][nY.length];
@@ -296,6 +285,94 @@ public class Veivlet {
            }
            });
        DOG.start();
+    }
+
+    private double[][][] DWTMHX(BufferedImage pic){
+        WritableRaster raster = pic.getRaster();
+        double[][][] DWTMHX = new double[kY.length][mX.length][nX.length];
+        for (int y : kY) {
+            double[][] DWT = new double[mX.length][nX.length];
+            for (int m : mX) {
+                for (int n : nX) {
+                    for (int x = 0; x < Xquantity-1; x++){
+                        DWT[m][n]+= diskretMHAT(x,Math.pow(2,m-1),n)*(raster.getPixel(x,y,new int[3])[0]);
+                    }
+                }
+            }
+            DWTMHX[y] = DWT;
+        }
+        return DWTMHX;
+    }
+    private BufferedImage dXMH(BufferedImage pic){
+        WritableRaster raster = pic.getRaster();
+        double[][][] DWTMHX = DWTDOGX(pic);
+        for (int y : kY) {
+            for (int x : kX) {
+                double[] pix = new double[3];
+                for (int i = 0; i < Xdecomposition; i++) {
+                    for (int j = 0; j < Xquantity-1; j++) {
+                        pix[0]+=diskretMHATP1(x,Math.pow(2,i-1),j)*DWTMHX[y][i][j];
+                    }
+                }
+                Arrays.fill(pix,Math.abs(pix[0]));
+                raster.setPixel(x,y,pix);
+            }
+        }
+        pic.setData(raster);
+        return deepCopy(pic);
+    }
+    private int[][][] DWTMHY(BufferedImage pic){
+        WritableRaster raster = pic.getRaster();
+        int[][][]DWTMHY = new int[kX.length][mY.length][nY.length];
+        for (int x : kX) {
+            int[][] DWT = new int[mY.length][nY.length];
+            for (int m : mY) {
+                for (int n : nY) {
+                    for (int y = 0; y < Yquantity-1; y++){
+                        DWT[m][n] += diskretMHAT(y,Math.pow(2,m-1),n)*(raster.getPixel(x,y,new int[3])[0]);
+                    }
+                }
+            }
+            DWTMHY[x] = DWT;
+        }
+        return DWTMHY;
+    }
+    private BufferedImage dYMH(BufferedImage pic){
+        WritableRaster raster = pic.getRaster();
+        int[][][] DWTMHY = DWTDOGY(pic);
+        for (int x : kX) {
+            for (int y : kY) {
+                int summ = 0;
+                for (int i = 0; i < Ydecomposition; i++) {
+                    for (int j = 0; j < Yquantity-1; j++) {
+                        summ+=(diskretMHATP1(y,Math.pow(2,i-1),j)*DWTMHY[x][i][j]);
+                    }
+                }
+                double[] pix = raster.getPixel(x,y,new double[3]);
+                Arrays.fill(pix,Math.abs(summ));
+                raster.setPixel(x,y, pix);
+            }
+        }
+        pic.setData(raster);
+        return deepCopy(pic);
+    }
+    private void getMHATed(){
+        MHAT = new Thread(()->{
+            try {
+                DxMHAT = dXMH(deepCopy(normImg));
+                DyMHAT = dYMH(deepCopy(normImg));
+                VeivletMHAT = NormFactor(grab(deepCopy(DxDog), deepCopy(DyDog), deepCopy(image)));
+                ImageIO.write(DxMHAT, getFileExtension(file), new File(directory.getAbsolutePath() + "\\MHATdx." + getFileExtension(file)));
+                System.out.println("DxMHAT записан");
+                ImageIO.write(DyMHAT, getFileExtension(file), new File(directory.getAbsolutePath() + "\\MHATdy." + getFileExtension(file)));
+                System.out.println("DyMHAT записан");
+                ImageIO.write(VeivletMHAT, getFileExtension(file), new File(directory.getAbsolutePath() + "\\MHAT." + getFileExtension(file)));
+                System.out.println("MHAT записан");
+            }catch (Exception e){
+                e.printStackTrace();
+            }
+        });
+        DOG.start();
     }
     private static double[][] getSubMatrix(double[][] matrix, int firstRow, int destRow, int firstCol, int destCol){
         double[][] newMatrix = new double[destRow-firstRow+1][destCol-firstCol+1];
