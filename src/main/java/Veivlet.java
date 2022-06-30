@@ -7,18 +7,19 @@ import java.awt.image.ColorModel;
 import java.awt.image.WritableRaster;
 import java.io.File;
 import java.io.IOException;
+import java.nio.file.Watchable;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Random;
 
 public class Veivlet {
     private final int Xdecomposition, Xquantity, a = 1,Ydecomposition, Yquantity;
-    private Thread DOG, MHAT, WAVE;
+    Thread DOG, MHAT, WAVE;
     int[] nX, mX,kX,mY, nY, kY;
     private final BufferedImage image,noiseImg,normImg,sobelImg;
-    private BufferedImage GrabImg,VeivletDog,VeivletMHAT,VeivletWAVE, PorogDOG, PorogMHAT, PorogWave;
+    BufferedImage GrabImg,VeivletDog,VeivletMHAT,VeivletWAVE, PorogDOG, PorogMHAT, PorogWave;
     private File file, directory;
-    public Veivlet(String path) throws IOException {
+    public Veivlet(String path) throws IOException, InterruptedException {
         String username = System.getProperty("user.name");
         file = new File(path);
         directory = new File("C:\\Users\\" + username +"\\Desktop\\"+file.getName().split("\\.")[0]);
@@ -42,9 +43,15 @@ public class Veivlet {
         ImageIO.write(sobelImg,getFileExtension(file), new File(directory.getAbsolutePath()+"\\Sobel." + getFileExtension(file)));
         GrabImg = NormFactor(grab(RSchmX(deepCopy(image)), RSchmY(deepCopy(image)), deepCopy(image)));
         ImageIO.write(GrabImg, getFileExtension(file), new File(directory.getAbsolutePath() + "\\test." + getFileExtension(file)));
-        getDogged();
-        getMHATed();
-        getWAVEed();
+        BufferedImage[] DOGs =  getDogged();
+        VeivletDog = DOGs[0];
+        PorogDOG = DOGs[1];
+        BufferedImage[] MHATs = getMHATed();
+        VeivletMHAT = MHATs[0];
+        PorogMHAT = MHATs[1];
+        BufferedImage[] WAVEs = getWAVEed();
+        VeivletWAVE = WAVEs[0];
+        PorogWave = WAVEs[1];
     }
     public Image getNoiseImg(){return SwingFXUtils.toFXImage(noiseImg,null);}
     public Image getNormImg(){return SwingFXUtils.toFXImage(normImg,null);}
@@ -53,7 +60,6 @@ public class Veivlet {
     public Image getDOGPOROG(){return SwingFXUtils.toFXImage(PorogDOG,null);}
     public Image getMHATPOROG(){return SwingFXUtils.toFXImage(PorogMHAT,null);}
     public Image getWAVEPOROG(){return SwingFXUtils.toFXImage(PorogWave,null);}
-
     public Image getDOGImg(){return SwingFXUtils.toFXImage(VeivletDog,null);}
     public Image getMHATImg(){return SwingFXUtils.toFXImage(VeivletMHAT,null);}
     public Image getWAVEImg(){return SwingFXUtils.toFXImage(VeivletWAVE,null);}
@@ -272,7 +278,7 @@ public class Veivlet {
         pic.setData(raster);
         return (pic);
     }
-    private void getDogged(){
+    private BufferedImage[] getDogged() throws InterruptedException {
        DOG = new Thread(()->{
            try {
                VeivletDog = NormFactor(grab(dXDOG(deepCopy(normImg)), dYDOG(deepCopy(normImg)), deepCopy(image)));
@@ -285,6 +291,7 @@ public class Veivlet {
            }
            });
        DOG.start();
+       return new BufferedImage[]{VeivletDog,PorogDOG};
     }
 
     private double[][][] DWTMHX(BufferedImage pic){
@@ -356,7 +363,7 @@ public class Veivlet {
         pic.setData(raster);
         return deepCopy(pic);
     }
-    private void getMHATed(){
+    private BufferedImage[] getMHATed() throws InterruptedException {
         MHAT = new Thread(()->{
             try {
                 VeivletMHAT = NormFactor(grab(dXMH(deepCopy(normImg)), dYMH(deepCopy(normImg)), deepCopy(image)));
@@ -369,6 +376,7 @@ public class Veivlet {
             }
         });
         MHAT.start();
+        return new BufferedImage[]{VeivletMHAT,PorogMHAT};
     }
 
     private double[][][] DWTWAVEX(BufferedImage pic){
@@ -440,7 +448,7 @@ public class Veivlet {
         pic.setData(raster);
         return deepCopy(pic);
     }
-    private void getWAVEed(){
+    private BufferedImage[] getWAVEed() throws InterruptedException {
         WAVE = new Thread(()->{
             try {
                 VeivletWAVE = NormFactor(grab(dXWAVE(deepCopy(normImg)), dYWAVE(deepCopy(normImg)), deepCopy(image)));
@@ -453,6 +461,7 @@ public class Veivlet {
             }
         });
         WAVE.start();
+        return new BufferedImage[]{VeivletWAVE,PorogWave};
     }
 
     private BufferedImage getPorog(BufferedImage pic){

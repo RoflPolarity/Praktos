@@ -75,8 +75,10 @@ public class Sample {
                 MHAT.setImage(main.getMHATImg());
                 DOGPorog.setImage(main.getDOGPOROG());
                 MHATPorog.setImage(main.getMHATPOROG());
-                WAVE.setImage(main.getWAVEPOROG());
+                WAVPorog.setImage(main.getWAVEPOROG());
             } catch (IOException e) {
+                e.printStackTrace();
+            } catch (InterruptedException e) {
                 e.printStackTrace();
             }
         });
