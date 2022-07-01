@@ -228,7 +228,6 @@ abstract class Wavelet extends Thread{
     abstract double WaveletF(double x);
     abstract double WaveletFP1(double x);
     abstract void save();
-    abstract BufferedImage getPorogget(BufferedImage pic);
     protected double diskretWavelet(int x, double m, int n){return Math.pow(a,-m/2)*WaveletF(Math.pow(a,-m)*x-n);}
     protected double diskretWaveletFP1(int x, double m, int n){return Math.pow(a,-m/2)*WaveletFP1(Math.pow(a,-m)*x-n);}
     protected double[][][] DWTx(BufferedImage pic){
@@ -340,17 +339,21 @@ abstract class Wavelet extends Thread{
         return new BufferedImage(cm, raster, isAlphaPremultiplied, null);
     }
     protected BufferedImage getPorog(BufferedImage pic){
+        int summ = 0, avg;
         WritableRaster raster = pic.getRaster();
-        for (int i = 0; i < pic.getHeight()-1; i++) {
-            for (int j = 0; j < pic.getWidth()-1; j++) {
-                int[] pix = raster.getPixel(i,j,new int[3]);
-                if (pix[0]>90&&pix[0]<255){
-                    pix[0] = 255;
-                    Arrays.fill(pix,pix[0]);
-                }else{
-                    pix[0] = 1;
-                    Arrays.fill(pix,pix[0]);
-                }
+        for (int i = 0; i < raster.getHeight(); i++) {
+            for (int j = 0; j < raster.getWidth(); j++) {
+                int[] pix = raster.getPixel(i,j,new int[0]);
+                summ+= pix[0];
+            }
+        }
+        avg = summ/(raster.getWidth()*raster.getHeight());
+        for (int i = 0; i < raster.getHeight(); i++) {
+            for (int j = 0; j < raster.getWidth(); j++) {
+                int[] pix = raster.getPixel(i,j,new int[0]);
+                if (pix[0]/avg>avg-10) pix[0] = 255;
+                else pix[0] = 0;
+                Arrays.fill(pix, pix[0]);
                 raster.setPixel(i,j,pix);
             }
         }
@@ -369,7 +372,7 @@ class WaveletDOG extends Wavelet{
     @Override
     public void run() {
         Wavelet.set(NormFactor(grab(dX(deepCopy(normalImage)), dY(deepCopy(normalImage)), normalImage)));
-        WaveletPorog.set(getPorog(getPorogget(deepCopy(Wavelet.get()))));
+        WaveletPorog.set(getPorog((deepCopy(Wavelet.get()))));
         save();
     }
 
@@ -394,20 +397,6 @@ class WaveletDOG extends Wavelet{
         }
 
     }
-
-    @Override
-    BufferedImage getPorogget(BufferedImage pic) {
-        WritableRaster raster = pic.getRaster();
-        for (int i = 0; i < raster.getHeight(); i++) {
-            for (int j = 0; j < raster.getWidth(); j++) {
-                int[] pix = raster.getPixel(i,j,new int[3]);
-                Arrays.fill(pix, pix[0]/10);
-                raster.setPixel(i,j,pix);
-            }
-        }
-        pic.setData(raster);
-        return pic;
-    }
 }
 class WaveletMHAT extends Wavelet{
 
@@ -419,7 +408,7 @@ class WaveletMHAT extends Wavelet{
     @Override
     public void run() {
         Wavelet.set(NormFactor(grab(dX(deepCopy(normalImage)), dY(deepCopy(normalImage)), normalImage)));
-        WaveletPorog.set(getPorog(getPorogget(deepCopy(Wavelet.get()))));
+        WaveletPorog.set(getPorog((deepCopy(Wavelet.get()))));
         save();
     }
 
@@ -444,18 +433,6 @@ class WaveletMHAT extends Wavelet{
         }
     }
 
-    @Override
-    BufferedImage getPorogget(BufferedImage pic) {
-        WritableRaster raster = pic.getRaster();
-        for (int i = 0; i < raster.getHeight(); i++) {
-            for (int j = 0; j < raster.getWidth(); j++) {
-                int[] pix = raster.getPixel(i,j,new int[3]);
-                Arrays.fill(pix, pix[0]/20);
-                raster.setPixel(i,j,pix);
-            }
-        }
-        pic.setData(raster);
-        return pic;    }
 }
 class WaveletWAVE extends Wavelet{
 
@@ -467,7 +444,7 @@ class WaveletWAVE extends Wavelet{
     @Override
     public void run() {
         Wavelet.set(NormFactor(grab(dX(deepCopy(normalImage)), dY(deepCopy(normalImage)), normalImage)));
-        WaveletPorog.set(getPorog(getPorogget(deepCopy(Wavelet.get()))));
+        WaveletPorog.set(getPorog((deepCopy(Wavelet.get()))));
         save();
     }
 
@@ -491,19 +468,5 @@ class WaveletWAVE extends Wavelet{
             e.printStackTrace();
         }
 
-    }
-
-    @Override
-    BufferedImage getPorogget(BufferedImage pic) {
-        WritableRaster raster = pic.getRaster();
-        for (int i = 0; i < raster.getHeight(); i++) {
-            for (int j = 0; j < raster.getWidth(); j++) {
-                int[] pix = raster.getPixel(i,j,new int[3]);
-                Arrays.fill(pix, pix[0]/23);
-                raster.setPixel(i,j,pix);
-            }
-        }
-        pic.setData(raster);
-        return pic;
     }
 }
