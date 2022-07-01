@@ -7,10 +7,9 @@ import java.awt.image.ColorModel;
 import java.awt.image.WritableRaster;
 import java.io.File;
 import java.io.IOException;
-import java.nio.file.Watchable;
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Random;
+import java.util.concurrent.atomic.AtomicReference;
 
 public class Veivlet {
     private final int Xdecomposition, Xquantity, a = 1,Ydecomposition, Yquantity;
@@ -43,15 +42,9 @@ public class Veivlet {
         ImageIO.write(sobelImg,getFileExtension(file), new File(directory.getAbsolutePath()+"\\Sobel." + getFileExtension(file)));
         GrabImg = NormFactor(grab(RSchmX(deepCopy(image)), RSchmY(deepCopy(image)), deepCopy(image)));
         ImageIO.write(GrabImg, getFileExtension(file), new File(directory.getAbsolutePath() + "\\test." + getFileExtension(file)));
-        BufferedImage[] DOGs =  getDogged();
-        VeivletDog = DOGs[0];
-        PorogDOG = DOGs[1];
-        BufferedImage[] MHATs = getMHATed();
-        VeivletMHAT = MHATs[0];
-        PorogMHAT = MHATs[1];
-        BufferedImage[] WAVEs = getWAVEed();
-        VeivletWAVE = WAVEs[0];
-        PorogWave = WAVEs[1];
+        WaveletDOG Dog = new WaveletDOG(normImg,kY,mX,nX,Xquantity,kX,Xdecomposition,mY,nY,Yquantity,Ydecomposition,getFileExtension(file),directory.getAbsolutePath());
+        WaveletMHAT MHAT = new WaveletMHAT(normImg,kY,mX,nX,Xquantity,kX,Xdecomposition,mY,nY,Yquantity,Ydecomposition,getFileExtension(file),directory.getAbsolutePath());
+        WaveletWAVE WAVE = new WaveletWAVE(normImg,kY,mX,nX,Xquantity,kX,Xdecomposition,mY,nY,Yquantity,Ydecomposition,getFileExtension(file),directory.getAbsolutePath());
     }
     public Image getNoiseImg(){return SwingFXUtils.toFXImage(noiseImg,null);}
     public Image getNormImg(){return SwingFXUtils.toFXImage(normImg,null);}
@@ -491,5 +484,276 @@ public class Veivlet {
             }
         }
         return newMatrix;
+    }
+}
+abstract class Wavelet extends Thread{
+    AtomicReference<BufferedImage> Wavelet;
+    AtomicReference<BufferedImage> WaveletPorog;
+    BufferedImage normalImage;
+    int a = 3, Xquantity, Xdecomposition, Yquantity, Ydecomposition;
+    int[] kY,mX,nX, kX, mY, nY;
+    String fileExtention,Path;
+    public Wavelet(BufferedImage normalImage, int[] kY, int[] mX, int[] nX, int Xquantity, int[] kX, int Xdecomposition, int[] mY, int [] nY, int Yquantity, int Ydecomposition, String fileExtention, String path){
+        this.normalImage = normalImage;
+        this.kY = kY;
+        this.Ydecomposition = Ydecomposition;
+        this.mX = mX;
+        this.nX = nX;
+        this.kX = kX;
+        this.mY = mY;
+        this.nY = nY;
+        this.Yquantity = Yquantity;
+        this.Xdecomposition = Xdecomposition;
+        this.Xquantity = Xquantity;
+        this.fileExtention = fileExtention;
+        this.Path = path;
+        this.start();
+    }
+    public BufferedImage getWavelet() {
+        return Wavelet.get();
+    }
+
+    public BufferedImage getWaveletPorog() {
+        return WaveletPorog.get();
+    }
+
+    abstract double WaveletF(double x);
+    abstract double WaveletFP1(double x);
+    abstract void save();
+    protected double diskretWavelet(int x, double m, int n){return Math.pow(a,-m/2)*WaveletF(Math.pow(a,-m)*x-n);}
+    protected double diskretWaveletFP1(int x, double m, int n){return Math.pow(a,-m/2)*WaveletFP1(Math.pow(a,-m)*x-n);}
+    protected double[][][] DWTx(BufferedImage pic){
+        WritableRaster raster = pic.getRaster();
+        double[][][] DWTx = new double[kY.length][mX.length][nX.length];
+        for (int y : kY) {
+            double[][] DWT = new double[mX.length][nX.length];
+            for (int m : mX) {
+                for (int n : nX) {
+                    for (int x = 0; x < Xquantity-1; x++){
+                        DWT[m][n]+= diskretWavelet(x,Math.pow(2,m-1),n)*(raster.getPixel(x,y,new int[3])[0]);
+                    }
+                }
+            }
+            DWTx[y] = DWT;
+        }
+        return DWTx;
+    }
+    protected BufferedImage dX(BufferedImage pic){
+        WritableRaster raster = pic.getRaster();
+        double[][][] DWTWAVEX = DWTx(pic);
+        for (int y : kY) {
+            for (int x : kX) {
+                double[] pix = new double[3];
+                for (int i = 0; i < Xdecomposition; i++) {
+                    for (int j = 0; j < Xquantity-1; j++) {
+                        pix[0]+=diskretWaveletFP1(x,Math.pow(2,i-1),j)*DWTWAVEX[y][i][j];
+                    }
+                }
+                Arrays.fill(pix,Math.abs(pix[0]));
+                raster.setPixel(x,y,pix);
+            }
+        }
+        pic.setData(raster);
+        return pic;
+    }
+    protected double[][][] DWTy(BufferedImage pic){
+        WritableRaster raster = pic.getRaster();
+        double[][][]DWTMHY = new double[kX.length][mY.length][nY.length];
+        for (int x : kX) {
+            double[][] DWT = new double[mY.length][nY.length];
+            for (int m : mY) {
+                for (int n : nY) {
+                    for (int y = 0; y < Yquantity-1; y++){
+                        DWT[m][n] += diskretWavelet(y,Math.pow(2,m-1),n)*(raster.getPixel(x,y,new int[3])[0]);
+                    }
+                }
+            }
+            DWTMHY[x] = DWT;
+        }
+        return DWTMHY;
+    }
+    protected BufferedImage dY(BufferedImage pic){
+        WritableRaster raster = pic.getRaster();
+        double[][][] DWTWAVEY = DWTy(pic);
+        for (int x : kX) {
+            for (int y : kY) {
+                double summ = 0;
+                for (int i = 0; i < Ydecomposition; i++) {
+                    for (int j = 0; j < Yquantity-1; j++) {
+                        summ+=(diskretWaveletFP1(y,Math.pow(2,i-1),j)*DWTWAVEY[x][i][j]);
+                    }
+                }
+                double[] pix = raster.getPixel(x,y,new double[3]);
+                Arrays.fill(pix,Math.abs(summ));
+                raster.setPixel(x,y, pix);
+            }
+        }
+        pic.setData(raster);
+        return (pic);
+    }
+    protected BufferedImage grab(BufferedImage DifferentX, BufferedImage DifferentY, BufferedImage pic){
+        WritableRaster rasterX = DifferentX.getRaster(),rasterY = DifferentY.getRaster(),res = pic.getRaster();
+        for (int x = 0; x <DifferentX.getWidth()-1 ; x++) {
+            for (int y = 0; y < DifferentY.getWidth()-1; y++) {
+                int[] pix1 = rasterX.getPixel(x, y, new int[3]);
+                int[] pix2 = rasterY.getPixel(x, y, new int[3]);
+                double[] result = new double[3];
+                double resInt = Math.sqrt(Math.pow(pix1[0], 2) + Math.pow(pix2[0], 2));
+                Arrays.fill(result, resInt);
+                res.setPixel(x, y, result);
+            }
+        }
+        pic.setData(res);
+        return pic;
+    }
+    protected static BufferedImage NormFactor(BufferedImage pic){
+        WritableRaster raster = pic.getRaster();
+        int min = raster.getPixel(0,0,new int[3])[0], max = raster.getPixel(0,0,new int[3])[0];
+        for (int i = 0; i < pic.getHeight(); i++)for (int j = 0; j < pic.getWidth(); j++){
+            if (raster.getPixel(i,j,new int[3])[0]<min)min = raster.getPixel(i,j,new int[3])[0];
+            if (raster.getPixel(i,j,new double[3])[0]>max)max = raster.getPixel(i,j,new int[3])[0];
+        }
+        for (int i = 0; i < pic.getHeight(); i++) {
+            for (int j = 0; j < pic.getWidth(); j++) {
+                double[] pix = raster.getPixel(i,j,new double[3]);
+                double res = ((pix[0]-min)*254)/(max-min);
+                Arrays.fill(pix, res);
+                raster.setPixel(i,j,pix);
+            }
+        }
+        pic.setData(raster);
+        return pic;
+    }
+    protected static BufferedImage deepCopy(BufferedImage bi) {
+        ColorModel cm = bi.getColorModel();
+        boolean isAlphaPremultiplied = cm.isAlphaPremultiplied();
+        WritableRaster raster = bi.copyData(null);
+        return new BufferedImage(cm, raster, isAlphaPremultiplied, null);
+    }
+    protected BufferedImage getPorog(BufferedImage pic){
+        WritableRaster raster = pic.getRaster();
+        for (int i = 0; i < pic.getHeight()-1; i++) {
+            for (int j = 0; j < pic.getWidth()-1; j++) {
+                int[] pix = raster.getPixel(i,j,new int[3]);
+                if (pix[0]>90&&pix[0]<255){
+                    pix[0] = 255;
+                    Arrays.fill(pix,pix[0]);
+                }else{
+                    pix[0] = 1;
+                    Arrays.fill(pix,pix[0]);
+                }
+                raster.setPixel(i,j,pix);
+            }
+        }
+        pic.setData(raster);
+        return deepCopy(pic);
+    }
+
+}
+class WaveletDOG extends Wavelet{
+
+
+    public WaveletDOG(BufferedImage normalImage, int[] kY, int[] mX, int[] nX, int Xquantity, int[] kX, int Xdecomposition, int[] mY, int[] nY, int Yquantity, int Ydecomposition, String fileExtention, String path) {
+        super(normalImage, kY, mX, nX, Xquantity, kX, Xdecomposition, mY, nY, Yquantity, Ydecomposition, fileExtention, path);
+    }
+
+    @Override
+    public void run() {
+        Wavelet.set(NormFactor(grab(dX(deepCopy(normalImage)), dY(deepCopy(normalImage)), normalImage)));
+        WaveletPorog.set(getPorog((deepCopy(Wavelet.get()))));
+        save();
+    }
+
+    @Override
+    protected double WaveletF(double x) {
+        return  (Math.pow(Math.E,-Math.pow(x,2)/2) - 0.5*Math.pow(Math.E,-Math.pow(x,2)/8));
+    }
+
+    @Override
+    protected double WaveletFP1(double x) {
+        return (0.125 * x * Math.pow(Math.E,-Math.pow(x,2)/8) - x*Math.pow(Math.E,-Math.pow(x,2)/2));
+    }
+
+    @Override
+    void save() {
+        try {
+            ImageIO.write(Wavelet.get(), fileExtention, new File(Path + "\\DOG." + fileExtention));
+            ImageIO.write(WaveletPorog.get(),fileExtention,new File(Path+"\\PorogDOG."+fileExtention));
+            System.out.println("DOG записан");
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+
+    }
+}
+class WaveletMHAT extends Wavelet{
+
+
+    public WaveletMHAT(BufferedImage normalImage, int[] kY, int[] mX, int[] nX, int Xquantity, int[] kX, int Xdecomposition, int[] mY, int[] nY, int Yquantity, int Ydecomposition, String fileExtention, String path) {
+        super(normalImage, kY, mX, nX, Xquantity, kX, Xdecomposition, mY, nY, Yquantity, Ydecomposition, fileExtention, path);
+    }
+
+    @Override
+    public void run() {
+        Wavelet.set(NormFactor(grab(dX(deepCopy(normalImage)), dY(deepCopy(normalImage)), normalImage)));
+        WaveletPorog.set(getPorog((deepCopy(Wavelet.get()))));
+        save();
+    }
+
+    @Override
+    protected double WaveletF(double x) {
+        return ((2*Math.pow(Math.PI,-0.25))/(Math.sqrt(3)))*(1-Math.pow(x,2))*Math.pow(Math.E,-(Math.pow(x,2)/2));
+    }
+
+    @Override
+    protected double WaveletFP1(double x) {
+        return (2*Math.sqrt(3)*x*Math.pow(Math.E,-Math.pow(x,2)/2)*(Math.pow(x,2)-3))/(3*Math.pow(Math.PI,0.25));
+    }
+
+    @Override
+    void save() {
+        try {
+            ImageIO.write(Wavelet.get(), fileExtention, new File(Path + "\\MHAT." + fileExtention));
+            ImageIO.write(WaveletPorog.get(),fileExtention,new File(Path+"\\PorogMHAT."+fileExtention));
+            System.out.println("MHAT записан");
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+}
+class WaveletWAVE extends Wavelet{
+
+
+    public WaveletWAVE(BufferedImage normalImage, int[] kY, int[] mX, int[] nX, int Xquantity, int[] kX, int Xdecomposition, int[] mY, int[] nY, int Yquantity, int Ydecomposition, String fileExtention, String path) {
+        super(normalImage, kY, mX, nX, Xquantity, kX, Xdecomposition, mY, nY, Yquantity, Ydecomposition, fileExtention, path);
+    }
+
+    @Override
+    public void run() {
+        Wavelet.set(NormFactor(grab(dX(deepCopy(normalImage)), dY(deepCopy(normalImage)), normalImage)));
+        WaveletPorog.set(getPorog((deepCopy(Wavelet.get()))));
+        save();
+    }
+
+    @Override
+    protected double WaveletF(double x) {
+        return -x*Math.pow(Math.E,-Math.pow(x,2)/2);
+    }
+
+    @Override
+    protected double WaveletFP1(double x) {
+        return Math.pow(x,2)*Math.pow(Math.E,-Math.pow(x,2)/2)-Math.pow(Math.E,-0.5*Math.pow(x,2));
+    }
+
+    @Override
+    void save() {
+        try {
+            ImageIO.write(Wavelet.get(), fileExtention, new File(Path + "\\WAVE." + fileExtention));
+            ImageIO.write(WaveletPorog.get(),fileExtention,new File(Path+"\\PorogWAVE."+fileExtention));
+            System.out.println("Wave записан");
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+
     }
 }

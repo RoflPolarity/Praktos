@@ -1,5 +1,6 @@
 import javafx.fxml.FXML;
 import javafx.scene.control.Button;
+import javafx.scene.control.ProgressBar;
 import javafx.scene.control.TextField;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
@@ -14,40 +15,36 @@ import java.util.concurrent.atomic.AtomicReference;
 public class Sample {
 
         @FXML
+        private Button getRes;
+        @FXML
+        private ProgressBar Progress;
+        @FXML
         private ImageView DOG;
-
         @FXML
         private ImageView DOGPorog;
-
         @FXML
         private ImageView MHAT;
-
         @FXML
         private ImageView MHATPorog;
-
         @FXML
         private ImageView MainPic;
-
         @FXML
         private ImageView Sobel;
-
         @FXML
         private ImageView WAVE;
-
         @FXML
         private ImageView WAVPorog;
-
         @FXML
         private Button getFile;
-
         @FXML
         private TextField prievue;
-
         @FXML
         private Button run;
 
+
     @FXML
     void initialize(){
+        Progress.setDisable(true);
         AtomicReference<File> files = new AtomicReference<>();
         run.setDisable(true);
         getFile.setOnAction(event -> {
@@ -70,12 +67,7 @@ public class Sample {
         run.setOnAction(event -> {
             try {
                 Veivlet main = new Veivlet(new String(files.get().getAbsolutePath().getBytes(), "windows-1251"));
-                WAVE.setImage(main.getWAVEImg());
-                DOG.setImage(main.getDOGImg());
-                MHAT.setImage(main.getMHATImg());
-                DOGPorog.setImage(main.getDOGPOROG());
-                MHATPorog.setImage(main.getMHATPOROG());
-                WAVPorog.setImage(main.getWAVEPOROG());
+
             } catch (IOException e) {
                 e.printStackTrace();
             } catch (InterruptedException e) {
