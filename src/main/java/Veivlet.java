@@ -192,6 +192,9 @@ public class Veivlet {
 abstract class Wavelet extends Thread{
     AtomicReference<BufferedImage> Wavelet = new AtomicReference<>();
     AtomicReference<BufferedImage> WaveletPorog = new AtomicReference<>();
+    AtomicReference<BufferedImage> dX = new AtomicReference<>();
+    AtomicReference<BufferedImage> dY = new AtomicReference<>();
+    Thread dXThread, dYThread;
     BufferedImage normalImage;
     int a = 3, Xquantity, Xdecomposition, Yquantity, Ydecomposition;
     int[] kY,mX,nX, kX, mY, nY;
@@ -349,7 +352,6 @@ abstract class Wavelet extends Thread{
         pic.setData(raster);
         return deepCopy(pic);
     }
-
 }
 class WaveletDOG extends Wavelet{
 
@@ -360,7 +362,19 @@ class WaveletDOG extends Wavelet{
 
     @Override
     public void run() {
-        Wavelet.set(NormFactor(grab(dX(deepCopy(normalImage)), dY(deepCopy(normalImage)), normalImage)));
+        dXThread = new Thread(()->{
+           dX.set(dX(deepCopy(normalImage)));
+        });
+        dYThread = new Thread(()->{
+           dY.set(dY(deepCopy(normalImage)));
+        });
+        try {
+            dXThread.join();
+            dYThread.join();
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
+        Wavelet.set(NormFactor(grab(dX.get(), dY.get(), normalImage)));
         WaveletPorog.set(getPorog((deepCopy(Wavelet.get()))));
         save();
     }
@@ -396,7 +410,19 @@ class WaveletMHAT extends Wavelet{
 
     @Override
     public void run() {
-        Wavelet.set(NormFactor(grab(dX(deepCopy(normalImage)), dY(deepCopy(normalImage)), normalImage)));
+        dXThread = new Thread(()->{
+            dX.set(dX(deepCopy(normalImage)));
+        });
+        dYThread = new Thread(()->{
+            dY.set(dY(deepCopy(normalImage)));
+        });
+        try {
+            dXThread.join();
+            dYThread.join();
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
+        Wavelet.set(NormFactor(grab(dX.get(), dY.get(), normalImage)));
         WaveletPorog.set(getPorog((deepCopy(Wavelet.get()))));
         save();
     }
@@ -423,7 +449,7 @@ class WaveletMHAT extends Wavelet{
     }
 
 }
-class WaveletWAVE extends Wavelet{
+class WaveletWAVE extends Wavelet {
 
 
     public WaveletWAVE(BufferedImage normalImage, int[] kY, int[] mX, int[] nX, int Xquantity, int[] kX, int Xdecomposition, int[] mY, int[] nY, int Yquantity, int Ydecomposition, String fileExtention, String path) {
@@ -432,7 +458,19 @@ class WaveletWAVE extends Wavelet{
 
     @Override
     public void run() {
-        Wavelet.set(NormFactor(grab(dX(deepCopy(normalImage)), dY(deepCopy(normalImage)), normalImage)));
+        dXThread = new Thread(()->{
+            dX.set(dX(deepCopy(normalImage)));
+        });
+        dYThread = new Thread(()->{
+            dY.set(dY(deepCopy(normalImage)));
+        });
+        try {
+            dXThread.join();
+            dYThread.join();
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
+        Wavelet.set(NormFactor(grab(dX.get(), dY.get(), normalImage)));
         WaveletPorog.set(getPorog((deepCopy(Wavelet.get()))));
         save();
     }
