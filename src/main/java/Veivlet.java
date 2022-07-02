@@ -343,15 +343,15 @@ abstract class Wavelet extends Thread{
         WritableRaster raster = pic.getRaster();
         for (int i = 0; i < raster.getHeight(); i++) {
             for (int j = 0; j < raster.getWidth(); j++) {
-                int[] pix = raster.getPixel(i,j,new int[0]);
+                int[] pix = raster.getPixel(i,j,new int[3]);
                 summ+= pix[0];
             }
         }
         avg = summ/(raster.getWidth()*raster.getHeight());
         for (int i = 0; i < raster.getHeight(); i++) {
             for (int j = 0; j < raster.getWidth(); j++) {
-                int[] pix = raster.getPixel(i,j,new int[0]);
-                if (pix[0]/avg>avg-10) pix[0] = 255;
+                int[] pix = raster.getPixel(i,j,new int[3]);
+                if (pix[0]-avg>avg-Math.sqrt(avg)) pix[0] = 255;
                 else pix[0] = 0;
                 Arrays.fill(pix, pix[0]);
                 raster.setPixel(i,j,pix);
