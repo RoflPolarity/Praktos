@@ -369,14 +369,17 @@ class WaveletDOG extends Wavelet{
            dY.set(dY(deepCopy(normalImage)));
         });
         try {
+            dXThread.start();
+            dYThread.start();
             dXThread.join();
             dYThread.join();
+            Wavelet.set(NormFactor(grab(dX.get(), dY.get(), normalImage)));
+            WaveletPorog.set(getPorog((deepCopy(Wavelet.get()))));
+            save();
         } catch (InterruptedException e) {
             e.printStackTrace();
         }
-        Wavelet.set(NormFactor(grab(dX.get(), dY.get(), normalImage)));
-        WaveletPorog.set(getPorog((deepCopy(Wavelet.get()))));
-        save();
+
     }
 
     @Override
@@ -417,14 +420,17 @@ class WaveletMHAT extends Wavelet{
             dY.set(dY(deepCopy(normalImage)));
         });
         try {
+            dXThread.start();
+            dYThread.start();
             dXThread.join();
             dYThread.join();
+            Wavelet.set(NormFactor(grab(dX.get(), dY.get(), normalImage)));
+            WaveletPorog.set(getPorog((deepCopy(Wavelet.get()))));
+            save();
         } catch (InterruptedException e) {
             e.printStackTrace();
         }
-        Wavelet.set(NormFactor(grab(dX.get(), dY.get(), normalImage)));
-        WaveletPorog.set(getPorog((deepCopy(Wavelet.get()))));
-        save();
+
     }
 
     @Override
@@ -465,14 +471,17 @@ class WaveletWAVE extends Wavelet {
             dY.set(dY(deepCopy(normalImage)));
         });
         try {
+            dXThread.start();
+            dYThread.start();
             dXThread.join();
             dYThread.join();
+            Wavelet.set(NormFactor(grab(dX.get(), dY.get(), normalImage)));
+            WaveletPorog.set(getPorog((deepCopy(Wavelet.get()))));
+            save();
         } catch (InterruptedException e) {
             e.printStackTrace();
         }
-        Wavelet.set(NormFactor(grab(dX.get(), dY.get(), normalImage)));
-        WaveletPorog.set(getPorog((deepCopy(Wavelet.get()))));
-        save();
+
     }
 
     @Override

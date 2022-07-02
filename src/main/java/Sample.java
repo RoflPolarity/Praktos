@@ -66,11 +66,14 @@ public class Sample {
         });
         run.setOnAction(event -> {
             try {
+                long start = System.currentTimeMillis();
                 Veivlet main = new Veivlet(new String(files.get().getAbsolutePath().getBytes(), "windows-1251"));
                 Sobel.setImage(main.getsobelImg());
                 main.Dog.join();
                 main.MHAT.join();
                 main.WAVE.join();
+                long finish = System.currentTimeMillis();
+                System.out.println((finish-start)/1000);
                 DOG.setImage(main.Dog.getWavelet());
                 DOGPorog.setImage(main.Dog.getWaveletPorog());
                 MHAT.setImage(main.MHAT.getWavelet());
