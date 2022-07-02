@@ -13,12 +13,13 @@ import java.util.concurrent.atomic.AtomicReference;
 
 public class Veivlet {
     private final int Xdecomposition, Xquantity, a = 1,Ydecomposition, Yquantity;
-    Thread DOG, MHAT, WAVE;
+    WaveletDOG Dog;
+    WaveletMHAT MHAT;
+    WaveletWAVE WAVE;
     int[] nX, mX,kX,mY, nY, kY;
-    private final BufferedImage image,noiseImg,normImg,sobelImg;
-    BufferedImage GrabImg,VeivletDog,VeivletMHAT,VeivletWAVE, PorogDOG, PorogMHAT, PorogWave;
+    private final BufferedImage image,noiseImg,normImg,sobelImg,GrabImg;
     private File file, directory;
-    public Veivlet(String path) throws IOException, InterruptedException {
+    public Veivlet(String path) throws IOException {
         String username = System.getProperty("user.name");
         file = new File(path);
         directory = new File("C:\\Users\\" + username +"\\Desktop\\"+file.getName().split("\\.")[0]);
@@ -42,20 +43,14 @@ public class Veivlet {
         ImageIO.write(sobelImg,getFileExtension(file), new File(directory.getAbsolutePath()+"\\Sobel." + getFileExtension(file)));
         GrabImg = NormFactor(grab(RSchmX(deepCopy(image)), RSchmY(deepCopy(image)), deepCopy(image)));
         ImageIO.write(GrabImg, getFileExtension(file), new File(directory.getAbsolutePath() + "\\test." + getFileExtension(file)));
-        WaveletDOG Dog = new WaveletDOG(normImg,kY,mX,nX,Xquantity,kX,Xdecomposition,mY,nY,Yquantity,Ydecomposition,getFileExtension(file),directory.getAbsolutePath());
-        WaveletMHAT MHAT = new WaveletMHAT(normImg,kY,mX,nX,Xquantity,kX,Xdecomposition,mY,nY,Yquantity,Ydecomposition,getFileExtension(file),directory.getAbsolutePath());
-        WaveletWAVE WAVE = new WaveletWAVE(normImg,kY,mX,nX,Xquantity,kX,Xdecomposition,mY,nY,Yquantity,Ydecomposition,getFileExtension(file),directory.getAbsolutePath());
+        Dog = new WaveletDOG(normImg,kY,mX,nX,Xquantity,kX,Xdecomposition,mY,nY,Yquantity,Ydecomposition,getFileExtension(file),directory.getAbsolutePath());
+        MHAT = new WaveletMHAT(normImg,kY,mX,nX,Xquantity,kX,Xdecomposition,mY,nY,Yquantity,Ydecomposition,getFileExtension(file),directory.getAbsolutePath());
+        WAVE = new WaveletWAVE(normImg,kY,mX,nX,Xquantity,kX,Xdecomposition,mY,nY,Yquantity,Ydecomposition,getFileExtension(file),directory.getAbsolutePath());
     }
     public Image getNoiseImg(){return SwingFXUtils.toFXImage(noiseImg,null);}
     public Image getNormImg(){return SwingFXUtils.toFXImage(normImg,null);}
     public Image getsobelImg(){return SwingFXUtils.toFXImage(sobelImg,null);}
     public Image getGrabImg(){return SwingFXUtils.toFXImage(GrabImg,null);}
-    public Image getDOGPOROG(){return SwingFXUtils.toFXImage(PorogDOG,null);}
-    public Image getMHATPOROG(){return SwingFXUtils.toFXImage(PorogMHAT,null);}
-    public Image getWAVEPOROG(){return SwingFXUtils.toFXImage(PorogWave,null);}
-    public Image getDOGImg(){return SwingFXUtils.toFXImage(VeivletDog,null);}
-    public Image getMHATImg(){return SwingFXUtils.toFXImage(VeivletMHAT,null);}
-    public Image getWAVEImg(){return SwingFXUtils.toFXImage(VeivletWAVE,null);}
 
     private static String getFileExtension(File file) {
         String fileName = file.getName();
@@ -217,14 +212,8 @@ abstract class Wavelet extends Thread{
         this.Path = path;
         this.start();
     }
-    public BufferedImage getWavelet() {
-        return Wavelet.get();
-    }
-
-    public BufferedImage getWaveletPorog() {
-        return WaveletPorog.get();
-    }
-
+    protected Image getWavelet() {return SwingFXUtils.toFXImage(Wavelet.get(),null);}
+    protected Image getWaveletPorog() {return SwingFXUtils.toFXImage(WaveletPorog.get(),null);}
     abstract double WaveletF(double x);
     abstract double WaveletFP1(double x);
     abstract void save();

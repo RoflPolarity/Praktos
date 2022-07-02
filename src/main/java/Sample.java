@@ -67,7 +67,16 @@ public class Sample {
         run.setOnAction(event -> {
             try {
                 Veivlet main = new Veivlet(new String(files.get().getAbsolutePath().getBytes(), "windows-1251"));
-
+                Sobel.setImage(main.getsobelImg());
+                main.Dog.join();
+                main.MHAT.join();
+                main.WAVE.join();
+                DOG.setImage(main.Dog.getWavelet());
+                DOGPorog.setImage(main.Dog.getWaveletPorog());
+                MHAT.setImage(main.MHAT.getWavelet());
+                MHATPorog.setImage(main.MHAT.getWaveletPorog());
+                WAVE.setImage(main.WAVE.getWavelet());
+                WAVPorog.setImage(main.WAVE.getWaveletPorog());
             } catch (IOException e) {
                 e.printStackTrace();
             } catch (InterruptedException e) {
