@@ -47,11 +47,7 @@ public class Veivlet {
         MHAT = new WaveletMHAT(normImg,kY,mX,nX,Xquantity,kX,Xdecomposition,mY,nY,Yquantity,Ydecomposition,getFileExtension(file),directory.getAbsolutePath());
         WAVE = new WaveletWAVE(normImg,kY,mX,nX,Xquantity,kX,Xdecomposition,mY,nY,Yquantity,Ydecomposition,getFileExtension(file),directory.getAbsolutePath());
     }
-    public Image getNoiseImg(){return SwingFXUtils.toFXImage(noiseImg,null);}
-    public Image getNormImg(){return SwingFXUtils.toFXImage(normImg,null);}
     public Image getsobelImg(){return SwingFXUtils.toFXImage(sobelImg,null);}
-    public Image getGrabImg(){return SwingFXUtils.toFXImage(GrabImg,null);}
-
     private static String getFileExtension(File file) {
         String fileName = file.getName();
         if(fileName.lastIndexOf(".") != -1 && fileName.lastIndexOf(".") != 0)
@@ -138,7 +134,6 @@ public class Veivlet {
             pic.setData(res);
             return deepCopy(pic);
     }
-
     private static BufferedImage RSchmX(BufferedImage pic){
         WritableRaster raster = pic.getRaster();
         double[][][] arr = new double[pic.getHeight()][pic.getWidth()][3];
