@@ -1,6 +1,6 @@
 import javafx.fxml.FXML;
 import javafx.scene.control.Button;
-import javafx.scene.control.ProgressBar;
+import javafx.scene.control.Tab;
 import javafx.scene.control.TextField;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
@@ -13,37 +13,54 @@ import java.util.concurrent.atomic.AtomicReference;
 
 public class Sample {
 
-        @FXML
-        private Button getRes;
-        @FXML
-        private ProgressBar Progress;
-        @FXML
-        private ImageView DOG;
-        @FXML
-        private ImageView DOGPorog;
-        @FXML
-        private ImageView MHAT;
-        @FXML
-        private ImageView MHATPorog;
-        @FXML
-        private ImageView MainPic;
-        @FXML
-        private ImageView Sobel;
-        @FXML
-        private ImageView WAVE;
-        @FXML
-        private ImageView WAVPorog;
-        @FXML
-        private Button getFile;
-        @FXML
-        private TextField prievue;
-        @FXML
-        private Button run;
+    @FXML
+    private Tab DOGTAB;
+
+    @FXML
+    private ImageView DOGWavelet;
+
+    @FXML
+    private ImageView DOGWaveletPorog;
+
+
+    @FXML
+    private Tab MHATTAB;
+
+    @FXML
+    private ImageView MHATWavelet;
+
+    @FXML
+    private ImageView MHATWaveletPorog;
+
+
+    @FXML
+    private ImageView Original;
+
+
+    @FXML
+    private ImageView Sobel;
+
+    @FXML
+    private Tab WAVETAB;
+
+    @FXML
+    private ImageView WAVEWavelet;
+
+    @FXML
+    private ImageView WAVEWaveletPorog;
+
+    @FXML
+    private Button getFile;
+
+    @FXML
+    private TextField prievue;
+
+    @FXML
+    private Button run;
 
 
     @FXML
     void initialize(){
-        Progress.setDisable(true);
         AtomicReference<File> files = new AtomicReference<>();
         run.setDisable(true);
         getFile.setOnAction(event -> {
@@ -60,7 +77,7 @@ public class Sample {
                 }
                 files.set(JFC.getSelectedFile());
                 run.setDisable(false);
-                MainPic.setImage(new Image("file:///" + JFC.getSelectedFile().getAbsolutePath()));
+                Original.setImage(new Image("file:///" + JFC.getSelectedFile().getAbsolutePath()));
             }
         });
         run.setOnAction(event -> {
@@ -68,17 +85,23 @@ public class Sample {
                 long start = System.currentTimeMillis();
                 Veivlet main = new Veivlet(new String(files.get().getAbsolutePath().getBytes(), "windows-1251"));
                 Sobel.setImage(main.getsobelImg());
+                DOGTAB.setDisable(true);
+                MHATTAB.setDisable(true);
+                WAVETAB.setDisable(true);
                 main.Dog.join();
+                DOGWavelet.setImage(main.Dog.getWavelet());
+                DOGWaveletPorog.setImage(main.Dog.getWaveletPorog());
+                DOGTAB.setDisable(false);
                 main.MHAT.join();
+                MHATWavelet.setImage(main.MHAT.getWavelet());
+                MHATWaveletPorog.setImage(main.MHAT.getWaveletPorog());
+                MHATTAB.setDisable(false);
                 main.WAVE.join();
+                WAVEWavelet.setImage(main.WAVE.getWavelet());
+                WAVEWaveletPorog.setImage(main.WAVE.getWaveletPorog());
+                WAVETAB.setDisable(false);
                 long finish = System.currentTimeMillis();
                 System.out.println((finish-start)/1000);
-                DOG.setImage(main.Dog.getWavelet());
-                DOGPorog.setImage(main.Dog.getWaveletPorog());
-                MHAT.setImage(main.MHAT.getWavelet());
-                MHATPorog.setImage(main.MHAT.getWaveletPorog());
-                WAVE.setImage(main.WAVE.getWavelet());
-                WAVPorog.setImage(main.WAVE.getWaveletPorog());
             } catch (IOException e) {
                 e.printStackTrace();
             } catch (InterruptedException e) {

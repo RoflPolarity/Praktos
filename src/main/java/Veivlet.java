@@ -301,7 +301,7 @@ abstract class Wavelet extends Thread{
         pic.setData(res);
         return pic;
     }
-    protected static BufferedImage NormFactor(BufferedImage pic){
+    protected BufferedImage NormFactor(BufferedImage pic){
         WritableRaster raster = pic.getRaster();
         int min = raster.getPixel(0,0,new int[3])[0], max = raster.getPixel(0,0,new int[3])[0];
         for (int i = 0; i < pic.getHeight(); i++)for (int j = 0; j < pic.getWidth(); j++){
@@ -319,7 +319,7 @@ abstract class Wavelet extends Thread{
         pic.setData(raster);
         return pic;
     }
-    protected static BufferedImage deepCopy(BufferedImage bi) {
+    protected BufferedImage deepCopy(BufferedImage bi) {
         ColorModel cm = bi.getColorModel();
         boolean isAlphaPremultiplied = cm.isAlphaPremultiplied();
         WritableRaster raster = bi.copyData(null);
@@ -358,10 +358,10 @@ class WaveletDOG extends Wavelet{
     @Override
     public void run() {
         dXThread = new Thread(()->{
-           dX.set(dX(deepCopy(normalImage)));
+            dX.set(dX(deepCopy(normalImage)));
         });
         dYThread = new Thread(()->{
-           dY.set(dY(deepCopy(normalImage)));
+            dY.set(dY(deepCopy(normalImage)));
         });
         try {
             dXThread.start();
