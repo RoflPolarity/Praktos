@@ -129,12 +129,12 @@ public class Veivlet {
     private static BufferedImage NormFactor(BufferedImage pic){
         WritableRaster raster = pic.getRaster();
         int min = raster.getPixel(0,0,new int[3])[0], max = raster.getPixel(0,0,new int[3])[0];
-        for (int i = 0; i < pic.getHeight(); i++)for (int j = 0; j < pic.getWidth(); j++){
+        for (int i = 0; i < pic.getWidth(); i++)for (int j = 0; j < pic.getHeight(); j++){
                 if (raster.getPixel(i,j,new int[3])[0]<min)min = raster.getPixel(i,j,new int[3])[0];
                 if (raster.getPixel(i,j,new double[3])[0]>max)max = raster.getPixel(i,j,new int[3])[0];
             }
-        for (int i = 0; i < pic.getHeight(); i++) {
-            for (int j = 0; j < pic.getWidth(); j++) {
+        for (int i = 0; i < pic.getWidth(); i++) {
+            for (int j = 0; j < pic.getHeight(); j++) {
                 double[] pix = raster.getPixel(i,j,new double[3]);
                 double res = ((pix[0]-min)*254)/(max-min);
                 Arrays.fill(pix, res);
@@ -155,8 +155,8 @@ public class Veivlet {
                double[][] matrix = new double[pic.getWidth()][pic.getWidth()];
 
         for (int i = 0; i < matrix.length; i++)for (int j = 0; j < matrix[i].length; j++) matrix[i][j] = (raster.getPixel(i, j,new double[3])[0]);
-        for (int iY = 1; iY < pic.getHeight() - 2; iY++) {
-            for (int iX = 1; iX < pic.getWidth() - 2; iX++) {
+        for (int iY = 1; iY < pic.getWidth() - 2; iY++) {
+            for (int iX = 1; iX < pic.getHeight() - 2; iX++) {
                 double GX = 0, GY = 0;
                 double[][] A = getSubMatrix(matrix, iY - 1, iY + 1, iX - 1, iX + 1);
                 for (int y = 0; y < 3; y++) for (int x = 0; x < 3; x++) GX += A[y][x] * MGx[y][x];
@@ -261,8 +261,8 @@ public class Veivlet {
             this.Path = path;
             this.start();
         }
-        protected Image getWavelet() {return SwingFXUtils.toFXImage(Wavelet.get(),null);}
-        protected Image getWaveletPorog() {return SwingFXUtils.toFXImage(WaveletPorog.get(),null);}
+        protected Image getWavelet() {return SwingFXUtils.toFXImage(deepCopy(Wavelet.get()),null);}
+        protected Image getWaveletPorog() {return SwingFXUtils.toFXImage(deepCopy(WaveletPorog.get()),null);}
         abstract double WaveletF(double x);
         abstract double WaveletFP1(double x);
         abstract void save();
@@ -398,16 +398,7 @@ public class Veivlet {
             pic.setData(raster);
             return deepCopy(pic);
         }
-    }
-    class WaveletDOG extends Wavelet{
-
-
-        public WaveletDOG(BufferedImage normalImage, int[] kY, int[] mX, int[] nX, int Xquantity, int[] kX, int Xdecomposition, int[] mY, int[] nY, int Yquantity, int Ydecomposition, String fileExtention, String path) {
-            super(normalImage, kY, mX, nX, Xquantity, kX, Xdecomposition, mY, nY, Yquantity, Ydecomposition, fileExtention, path);
-        }
-
-        @Override
-        public void run() {
+        public void run(){
             dXThread = new Thread(()->{
                 dX.set(dX(deepCopy(normalImage)));
             });
@@ -419,13 +410,19 @@ public class Veivlet {
                 dYThread.start();
                 dXThread.join();
                 dYThread.join();
-                Wavelet.set(NormFactor(grab(dX.get(), dY.get(), normalImage)));
+                Wavelet.set(NormFactor(grab(dX.get(), dY.get(), deepCopy(normalImage))));
                 WaveletPorog.set(getPorog((deepCopy(Wavelet.get()))));
                 save();
             } catch (InterruptedException e) {
                 e.printStackTrace();
             }
+        }
+    }
+    class WaveletDOG extends Wavelet{
 
+
+        public WaveletDOG(BufferedImage normalImage, int[] kY, int[] mX, int[] nX, int Xquantity, int[] kX, int Xdecomposition, int[] mY, int[] nY, int Yquantity, int Ydecomposition, String fileExtention, String path) {
+            super(normalImage, kY, mX, nX, Xquantity, kX, Xdecomposition, mY, nY, Yquantity, Ydecomposition, fileExtention, path);
         }
 
         @Override
@@ -456,29 +453,6 @@ public class Veivlet {
         public WaveletMHAT(BufferedImage normalImage, int[] kY, int[] mX, int[] nX, int Xquantity, int[] kX, int Xdecomposition, int[] mY, int[] nY, int Yquantity, int Ydecomposition, String fileExtention, String path) {
             super(normalImage, kY, mX, nX, Xquantity, kX, Xdecomposition, mY, nY, Yquantity, Ydecomposition, fileExtention, path);
         }
-
-        @Override
-        public void run() {
-            dXThread = new Thread(()->{
-                dX.set(dX(deepCopy(normalImage)));
-            });
-            dYThread = new Thread(()->{
-                dY.set(dY(deepCopy(normalImage)));
-            });
-            try {
-                dXThread.start();
-                dYThread.start();
-                dXThread.join();
-                dYThread.join();
-                Wavelet.set(NormFactor(grab(dX.get(), dY.get(), normalImage)));
-                WaveletPorog.set(getPorog((deepCopy(Wavelet.get()))));
-                save();
-            } catch (InterruptedException e) {
-                e.printStackTrace();
-            }
-
-        }
-
         @Override
         protected double WaveletF(double x) {
             return ((2*Math.pow(Math.PI,-0.25))/(Math.sqrt(3)))*(1-Math.pow(x,2))*Math.pow(Math.E,-(Math.pow(x,2)/2));
@@ -508,27 +482,7 @@ public class Veivlet {
             super(normalImage, kY, mX, nX, Xquantity, kX, Xdecomposition, mY, nY, Yquantity, Ydecomposition, fileExtention, path);
         }
 
-        @Override
-        public void run() {
-            dXThread = new Thread(()->{
-                dX.set(dX(deepCopy(normalImage)));
-            });
-            dYThread = new Thread(()->{
-                dY.set(dY(deepCopy(normalImage)));
-            });
-            try {
-                dXThread.start();
-                dYThread.start();
-                dXThread.join();
-                dYThread.join();
-                Wavelet.set(NormFactor(grab(dX.get(), dY.get(), normalImage)));
-                WaveletPorog.set(getPorog((deepCopy(Wavelet.get()))));
-                save();
-            } catch (InterruptedException e) {
-                e.printStackTrace();
-            }
 
-        }
 
         @Override
         protected double WaveletF(double x) {
