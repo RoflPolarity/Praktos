@@ -1,3 +1,4 @@
+import javafx.concurrent.Task;
 import javafx.fxml.FXML;
 import javafx.scene.control.Button;
 import javafx.scene.control.Tab;
@@ -84,27 +85,31 @@ public class Sample {
             try {
                 long start = System.currentTimeMillis();
                 Veivlet main = new Veivlet(new String(files.get().getAbsolutePath().getBytes(), "windows-1251"));
+            Task task = new Task<Void>(){
+                    protected Void call() throws Exception{
+                        DOGTAB.setDisable(true);
+                        MHATTAB.setDisable(true);
+                        WAVETAB.setDisable(true);
+                        main.Dog.join();
+                        DOGWavelet.setImage(main.Dog.getWavelet());
+                        DOGWaveletPorog.setImage(main.Dog.getWaveletPorog());
+                        DOGTAB.setDisable(false);
+                        main.MHAT.join();
+                        MHATWavelet.setImage(main.MHAT.getWavelet());
+                        MHATWaveletPorog.setImage(main.MHAT.getWaveletPorog());
+                        MHATTAB.setDisable(false);
+                        main.WAVE.join();
+                        WAVEWavelet.setImage(main.WAVE.getWavelet());
+                        WAVEWaveletPorog.setImage(main.WAVE.getWaveletPorog());
+                        WAVETAB.setDisable(false);
+                        return null;
+                    }
+                };
                 Sobel.setImage(main.getsobelImg());
-                DOGTAB.setDisable(true);
-                MHATTAB.setDisable(true);
-                WAVETAB.setDisable(true);
-                main.Dog.join();
-                DOGWavelet.setImage(main.Dog.getWavelet());
-                DOGWaveletPorog.setImage(main.Dog.getWaveletPorog());
-                DOGTAB.setDisable(false);
-                main.MHAT.join();
-                MHATWavelet.setImage(main.MHAT.getWavelet());
-                MHATWaveletPorog.setImage(main.MHAT.getWaveletPorog());
-                MHATTAB.setDisable(false);
-                main.WAVE.join();
-                WAVEWavelet.setImage(main.WAVE.getWavelet());
-                WAVEWaveletPorog.setImage(main.WAVE.getWaveletPorog());
-                WAVETAB.setDisable(false);
+                new Thread(task).start();
                 long finish = System.currentTimeMillis();
                 System.out.println((finish-start)/1000);
             } catch (IOException e) {
-                e.printStackTrace();
-            } catch (InterruptedException e) {
                 e.printStackTrace();
             }
         });
