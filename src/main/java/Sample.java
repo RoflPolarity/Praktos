@@ -9,6 +9,7 @@ import javafx.scene.control.Tab;
 import javafx.scene.control.TextField;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
+import javafx.stage.Modality;
 import javafx.stage.Stage;
 import javafx.stage.WindowEvent;
 
@@ -135,18 +136,18 @@ public class Sample {
             }
         });
         GetReport.setOnAction(event->{
-            Task<Void> task = new Task<Void>() {
-                @Override
-                protected Void call() throws Exception {
+                try {
                     Stage newStage = new Stage();
-                    Parent root = FXMLLoader.load(getClass().getResource("report.fxml"));
+                    newStage.initModality(Modality.APPLICATION_MODAL);
+                    Parent root = FXMLLoader.load(getClass().getResource("src/main/resources/report.fxml"));
                     newStage.setTitle("");
                     newStage.setScene(new Scene(root, 600, 400));
                     newStage.setResizable(false);
                     newStage.show();
-                    return null;
-                }
-            };
-        });
+                } catch (IOException e) {
+                e.printStackTrace();
+            }
+            });
+
     }
 }

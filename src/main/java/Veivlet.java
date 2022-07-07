@@ -372,8 +372,8 @@ public class Veivlet {
                 this.SNRGGWavelet = SNRGG(Wavelet.get());
                 this.SNRGGPorog = SNRGG(WaveletPorog.get());
                 this.SNRGGGrab = SNRGG(GrabImg);
-                this.SNRFWavelet = SNRF(Wavelet.get(),300,5,50);
-                this.SNRFPorog = SNRF(WaveletPorog.get(),300,5,50);
+                this.SNRFWavelet = SNRF(Wavelet.get(),30,5,50);
+                this.SNRFPorog = SNRF(WaveletPorog.get(),30,5,50);
                 save();
             } catch (InterruptedException e) {
                 e.printStackTrace();
