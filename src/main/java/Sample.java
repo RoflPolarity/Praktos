@@ -1,10 +1,16 @@
 import javafx.concurrent.Task;
+import javafx.event.EventHandler;
 import javafx.fxml.FXML;
+import javafx.fxml.FXMLLoader;
+import javafx.scene.Parent;
+import javafx.scene.Scene;
 import javafx.scene.control.Button;
 import javafx.scene.control.Tab;
 import javafx.scene.control.TextField;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
+import javafx.stage.Stage;
+import javafx.stage.WindowEvent;
 
 import javax.swing.*;
 import java.io.File;
@@ -13,6 +19,8 @@ import java.io.UnsupportedEncodingException;
 import java.util.concurrent.atomic.AtomicReference;
 
 public class Sample {
+    @FXML
+    private Button GetReport;
 
     @FXML
     private Tab DOGTAB;
@@ -64,6 +72,7 @@ public class Sample {
     void initialize(){
         AtomicReference<File> files = new AtomicReference<>();
         run.setDisable(true);
+        GetReport.setDisable(true);
         getFile.setOnAction(event -> {
             getFile.setDisable(true);
             Task<Void> task = new Task<Void>() {
@@ -115,6 +124,7 @@ public class Sample {
                         System.out.println(finish/1000);
                         run.setDisable(false);
                         getFile.setDisable(false);
+                        GetReport.setDisable(false);
                         return null;
                     }
                 };
@@ -123,6 +133,20 @@ public class Sample {
                 } catch (IOException e) {
                 e.printStackTrace();
             }
+        });
+        GetReport.setOnAction(event->{
+            Task<Void> task = new Task<Void>() {
+                @Override
+                protected Void call() throws Exception {
+                    Stage newStage = new Stage();
+                    Parent root = FXMLLoader.load(getClass().getResource("report.fxml"));
+                    newStage.setTitle("");
+                    newStage.setScene(new Scene(root, 600, 400));
+                    newStage.setResizable(false);
+                    newStage.show();
+                    return null;
+                }
+            };
         });
     }
 }

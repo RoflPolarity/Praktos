@@ -47,58 +47,6 @@ public class Veivlet {
         MHAT = new WaveletMHAT(normImg,kY,mX,nX,Xquantity,kX,Xdecomposition,mY,nY,Yquantity,Ydecomposition,getFileExtension(file),directory.getAbsolutePath());
         WAVE = new WaveletWAVE(normImg,kY,mX,nX,Xquantity,kX,Xdecomposition,mY,nY,Yquantity,Ydecomposition,getFileExtension(file),directory.getAbsolutePath());
     }
-    private int[][] SGG(int SG[][], int i1, int j1, int NN){
-        for (int i = i1; i <= i1+NN; i++) {
-            SG[i][j1] = 1;
-            SG[i][j1+NN] = 1;
-        }
-        for (int j = j1; j <=j1+NN ; j++) {
-            SG[i1][j] = 1;
-            SG[i1+NN][j] = 1;
-        }
-        return SG;
-    }
-    private int SNRGG(BufferedImage mass){
-        WritableRaster raster = mass.getRaster();
-        int SS = 0;
-        for (int i = 0; i < mass.getHeight()-1; i++) {
-            for (int j = 0; j < mass.getWidth()-1; j++) {
-                SS+=raster.getPixel(i,j,new int[3])[0];
-            }
-        }
-        SS /= (mass.getHeight()-1)*(mass.getWidth()-1);
-        int V = 0;
-        for (int i = 0; i < mass.getHeight()-1; i++) {
-            for (int j = 0; j < mass.getWidth()-1; j++) {
-                V+=Math.pow(raster.getPixel(i,j,new int[3])[0] - SS,2);
-            }
-        }
-        return  (int) ((255-SS)/Math.sqrt(V/((mass.getHeight()-1)*(mass.getWidth()-1))));
-    }
-    private double SNRF (BufferedImage pic, int i1, int j1, int NN){
-        WritableRaster raster = pic.getRaster();
-        double SS, SSF, VF;
-        int summ = 0;
-        for (int i = 0; i < pic.getHeight()-1; i++)for (int j = 0; j < pic.getWidth()-1; j++)summ += raster.getPixel(i,j, new int[3])[0];
-        SS=summ/(pic.getHeight()-1)*(pic.getWidth()-1);
-        summ = 0;
-        for (int i = i1; i <= i1+NN; i++)for (int j = j1; j < j1+NN; j++)summ += raster.getPixel(i,j, new int[3])[0];
-        SSF = (summ/Math.pow(NN,2));
-        summ = 0;
-        for (int i = i1; i <=i1+NN; i++)for (int j = j1; j <=j1+NN ; j++)summ+= raster.getPixel(i,j,new int[3])[0] - Math.pow(SSF,2);
-        VF = summ/Math.pow(NN,2);
-        return (255-SS)/Math.sqrt(VF);
-    }
-    private double SKO(BufferedImage pic, int[][] mass){
-        WritableRaster raster = pic.getRaster();
-        double SKO = 0;
-        for (int i = 0; i < pic.getHeight(); i++) {
-            for (int j = 0; j < pic.getWidth(); j++) {
-                SKO += Math.pow(mass[i][j] - raster.getPixel(i,j,new int[3])[0],2);
-            }
-        }
-        return Math.sqrt(SKO / ((pic.getHeight()-1)*(pic.getWidth()-1)));
-    }
     public Image getsobelImg(){return SwingFXUtils.toFXImage(sobelImg,null);}
     private static String getFileExtension(File file) {
         String fileName = file.getName();
@@ -245,6 +193,11 @@ public class Veivlet {
         int a = 3, Xquantity, Xdecomposition, Yquantity, Ydecomposition;
         int[] kY,mX,nX, kX, mY, nY;
         String fileExtention,Path;
+        //T1 - sobel
+        //TT - grab
+        double SKOWavelet, SKOPorog, SKOGRAD_SKOSobel;
+        double SNRGGWavelet, SNRGGPorog, SNRGGGrab;
+        double SNRFWavelet, SNRFPorog, SNRFGrab;
         public Wavelet(BufferedImage normalImage, int[] kY, int[] mX, int[] nX, int Xquantity, int[] kX, int Xdecomposition, int[] mY, int [] nY, int Yquantity, int Ydecomposition, String fileExtention, String path){
             this.normalImage = normalImage;
             this.kY = kY;
@@ -412,11 +365,74 @@ public class Veivlet {
                 dYThread.join();
                 Wavelet.set(NormFactor(grab(dX.get(), dY.get(), deepCopy(normalImage))));
                 WaveletPorog.set(getPorog((deepCopy(Wavelet.get()))));
+                this.SKOWavelet = SKO(Wavelet.get(),GrabImg);
+                this.SKOPorog = SKO(WaveletPorog.get(),GrabImg);
+                this.SKOGRAD_SKOSobel = SKO(sobelImg,GrabImg);
+                this.SNRGGGrab = SNRGG(GrabImg);
+                this.SNRGGWavelet = SNRGG(Wavelet.get());
+                this.SNRGGPorog = SNRGG(WaveletPorog.get());
+                this.SNRGGGrab = SNRGG(GrabImg);
+                this.SNRFWavelet = SNRF(Wavelet.get(),300,5,50);
+                this.SNRFPorog = SNRF(WaveletPorog.get(),300,5,50);
                 save();
             } catch (InterruptedException e) {
                 e.printStackTrace();
             }
         }
+        protected int[][] SGG(int SG[][], int i1, int j1, int NN){
+            for (int i = i1; i <= i1+NN; i++) {
+                SG[i][j1] = 1;
+                SG[i][j1+NN] = 1;
+            }
+            for (int j = j1; j <=j1+NN ; j++) {
+                SG[i1][j] = 1;
+                SG[i1+NN][j] = 1;
+            }
+            return SG;
+        }
+        protected double SNRGG(BufferedImage mass){
+            WritableRaster raster = mass.getRaster();
+            int SS = 0;
+            for (int i = 0; i < mass.getHeight()-1; i++) {
+                for (int j = 0; j < mass.getWidth()-1; j++) {
+                    SS+=raster.getPixel(i,j,new int[3])[0];
+                }
+            }
+            SS /= (mass.getHeight()-1)*(mass.getWidth()-1);
+            int V = 0;
+            for (int i = 0; i < mass.getHeight()-1; i++) {
+                for (int j = 0; j < mass.getWidth()-1; j++) {
+                    V+=Math.pow(raster.getPixel(i,j,new int[3])[0] - SS,2);
+                }
+            }
+            return ((255-SS)/Math.sqrt(V/((mass.getHeight()-1)*(mass.getWidth()-1))));
+        }//Пиковый сигнал/шум
+        protected double SNRF (BufferedImage pic, int i1, int j1, int NN){
+            WritableRaster raster = pic.getRaster();
+            double SS, SSF, VF;
+            int summ = 0;
+            for (int i = 0; i < pic.getHeight()-1; i++)for (int j = 0; j < pic.getWidth()-1; j++)summ += raster.getPixel(i,j, new int[3])[0];
+            SS=summ/(pic.getHeight()-1)*(pic.getWidth()-1);
+            summ = 0;
+            for (int i = i1; i <= i1+NN; i++)for (int j = j1; j < j1+NN; j++)summ += raster.getPixel(i,j, new int[3])[0];
+            SSF = (summ/Math.pow(NN,2));
+            summ = 0;
+            for (int i = i1; i <=i1+NN; i++)for (int j = j1; j <=j1+NN ; j++)summ+= raster.getPixel(i,j,new int[3])[0] - Math.pow(SSF,2);
+            VF = summ/Math.pow(NN,2);
+            return (255-SS)/Math.sqrt(VF);
+        }//Пиковый сигнал шум по СКО фона
+        protected double SKO(BufferedImage pic, BufferedImage pic2){
+            WritableRaster raster = pic.getRaster();
+            WritableRaster raster1 = pic2.getRaster();
+            double SKO = 0;
+            for (int i = 0; i < pic.getHeight(); i++) {
+                for (int j = 0; j < pic.getWidth(); j++) {
+                    SKO += Math.pow(raster1.getPixel(i,j,new int[3])[0] - raster.getPixel(i,j,new int[3])[0],2);
+                }
+            }
+            return Math.sqrt(SKO / ((pic.getHeight()-1)*(pic.getWidth()-1)));
+        }//Среднеквадратичное отклонение
+
     }
     class WaveletDOG extends Wavelet{
 
