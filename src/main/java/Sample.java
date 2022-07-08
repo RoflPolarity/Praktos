@@ -17,6 +17,7 @@ import javax.swing.*;
 import java.io.File;
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
+import java.time.temporal.ValueRange;
 import java.util.concurrent.atomic.AtomicReference;
 
 public class Sample {
@@ -99,28 +100,28 @@ public class Sample {
             };
             new Thread(task).start();
         });
-        AtomicReference<Veivlet> main = new AtomicReference();
+        Veivlet[] main = new Veivlet[1];
         run.setOnAction(event -> {
             run.setDisable(true);
             try {
                 long start = System.currentTimeMillis();
-                main.set(new Veivlet(new String(files.get().getAbsolutePath().getBytes(), "windows-1251")));
+                main[0] = new Veivlet(new String(files.get().getAbsolutePath().getBytes(), "windows-1251"));
             Task task = new Task<Void>(){
                     protected Void call() throws Exception{
                         DOGTAB.setDisable(true);
                         MHATTAB.setDisable(true);
                         WAVETAB.setDisable(true);
-                        main.get().Dog.join();
-                        main.get().MHAT.join();
-                        main.get().WAVE.join();
-                        DOGWavelet.setImage(main.get().Dog.getWavelet());
-                        DOGWaveletPorog.setImage(main.get().Dog.getWaveletPorog());
+                        main[0].Dog.join();
+                        main[0].MHAT.join();
+                        main[0].WAVE.join();
+                        DOGWavelet.setImage(main[0].Dog.getWavelet());
+                        DOGWaveletPorog.setImage(main[0].Dog.getWaveletPorog());
                         DOGTAB.setDisable(false);
-                        MHATWavelet.setImage(main.get().MHAT.getWavelet());
-                        MHATWaveletPorog.setImage(main.get().MHAT.getWaveletPorog());
+                        MHATWavelet.setImage(main[0].MHAT.getWavelet());
+                        MHATWaveletPorog.setImage(main[0].MHAT.getWaveletPorog());
                         MHATTAB.setDisable(false);
-                        WAVEWavelet.setImage(main.get().WAVE.getWavelet());
-                        WAVEWaveletPorog.setImage(main.get().WAVE.getWaveletPorog());
+                        WAVEWavelet.setImage(main[0].WAVE.getWavelet());
+                        WAVEWaveletPorog.setImage(main[0].WAVE.getWaveletPorog());
                         WAVETAB.setDisable(false);
                         long finish = System.currentTimeMillis() - start;
                         System.out.println(finish/1000);
@@ -130,7 +131,7 @@ public class Sample {
                         return null;
                     }
                 };
-                Sobel.setImage(main.get().getsobelImg());
+                Sobel.setImage(main[0].getsobelImg());
                 new Thread(task).start();
                 } catch (IOException e) {
                 e.printStackTrace();
@@ -140,10 +141,13 @@ public class Sample {
                 try {
                     Stage newStage = new Stage(StageStyle.UNDECORATED);
                     newStage.initModality(Modality.APPLICATION_MODAL);
+
+                    report report = new report(main[0]);
+
                     FXMLLoader loader = new FXMLLoader(getClass().getResource("report.fxml"));
+                    loader.setController(report);
                     Parent root = loader.load();
-                    report report = loader.getController();
-                    report.main = main.get();
+
                     newStage.setTitle("");
                     newStage.setScene(new Scene(root, 600, 420));
                     newStage.setResizable(false);

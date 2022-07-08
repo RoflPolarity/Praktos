@@ -1,24 +1,28 @@
 import javafx.fxml.FXML;
+import javafx.fxml.Initializable;
 import javafx.scene.control.*;
 
+import java.net.URL;
+import java.util.ResourceBundle;
 import java.util.concurrent.atomic.AtomicInteger;
 
 public class report {
-    Veivlet main;
-    @FXML
-    private Button exitButton;
 
     @FXML
-    private Button nextButton;
+    private Button exitButton = new Button();
 
     @FXML
-    private TextArea report;
-
+    private Button nextButton = new Button();
 
     @FXML
-    void initialize(){
+    private TextArea reportArea = new TextArea();
+
+    public  report(Veivlet main){
+        reportArea.setEditable(false);
+        reportArea.setVisible(true);
+
         AtomicInteger i = new AtomicInteger();
-        report.setText("SKO(Sobel, Grad) = "+ main.Dog.SKOGRAD_SKOSobel +
+        reportArea.setPromptText("SKO(Sobel, Grad) = "+ main.Dog.SKOGRAD_SKOSobel +
                 "\nSKO(DOG, Grad) = " + main.Dog.SKOWavelet +
                 "\nSKO(Wave, Grad) = " + main.WAVE.SKOWavelet +
                 "\nSKO(MHAT, Grad) = " + main.MHAT.SKOWavelet +
@@ -30,7 +34,7 @@ public class report {
         nextButton.setOnAction(event -> {
             i.getAndIncrement();
             if (i.get() ==0){
-                report.setText("SKO(Sobel, Grad) = "+ main.Dog.SKOGRAD_SKOSobel +
+                reportArea.setText("SKO(Sobel, Grad) = "+ main.Dog.SKOGRAD_SKOSobel +
                         "\nSKO(DOG, Grad) = " + main.Dog.SKOWavelet +
                         "\nSKO(Wave, Grad) = " + main.WAVE.SKOWavelet +
                         "\nSKO(MHAT, Grad) = " + main.MHAT.SKOWavelet +
@@ -40,7 +44,7 @@ public class report {
                         "\nSKO(MHAT, Grad) = " + main.MHAT.SKOPorog);
 
             }if (i.get()==1){
-                report.setText("SNRGG(Sobel) = "+ main.Dog.SNRGGGrab +
+                reportArea.setText("SNRGG(Sobel) = "+ main.Dog.SNRGGGrab +
                         "\nSNRGG(DOG) = " + main.Dog.SNRGGWavelet +
                         "\nSNRGG(Wave) = " + main.WAVE.SNRGGWavelet +
                         "\nSNRGG(MHAT) = " + main.MHAT.SNRGGWavelet +
@@ -49,7 +53,7 @@ public class report {
                         "\nSNRGG(Wave) = " + main.WAVE.SNRGGPorog +
                         "\nSNRGG(MHAT) = " + main.MHAT.SNRGGPorog);
             }if (i.get()==2){
-                report.setText("SNRGG(Sobel) = "+ main.Dog.SNRGGGrab +
+                reportArea.setText("SNRGG(Sobel) = "+ main.Dog.SNRGGGrab +
                         "\nSNRF(DOG) = " + main.Dog.SNRFWavelet +
                         "\nSNRF(Wave) = " + main.WAVE.SNRFWavelet +
                         "\nSNRF(MHAT) = " + main.MHAT.SNRFWavelet +
@@ -59,7 +63,7 @@ public class report {
                         "\nSNRF(MHAT) = " + main.MHAT.SNRFPorog);
             }if (i.get()>2){
                 i.set(0);
-                report.setText("SKO(Sobel, Grad) = "+ main.Dog.SKOGRAD_SKOSobel +
+                reportArea.setText("SKO(Sobel, Grad) = "+ main.Dog.SKOGRAD_SKOSobel +
                         "\nSKO(DOG, Grad) = " + main.Dog.SKOWavelet +
                         "\nSKO(Wave, Grad) = " + main.WAVE.SKOWavelet +
                         "\nSKO(MHAT, Grad) = " + main.MHAT.SKOWavelet +
@@ -70,6 +74,10 @@ public class report {
 
             }
         });
+
+    }
+    @FXML
+    void initialize(){
 
     }
 }
