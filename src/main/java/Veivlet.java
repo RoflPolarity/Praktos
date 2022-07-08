@@ -1,3 +1,5 @@
+import javafx.collections.FXCollections;
+import javafx.collections.ObservableList;
 import javafx.embed.swing.SwingFXUtils;
 import javafx.scene.image.Image;
 
@@ -7,7 +9,9 @@ import java.awt.image.ColorModel;
 import java.awt.image.WritableRaster;
 import java.io.File;
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.List;
 import java.util.Random;
 import java.util.concurrent.atomic.AtomicReference;
 
@@ -47,6 +51,7 @@ public class Veivlet {
         MHAT = new WaveletMHAT(normImg,kY,mX,nX,Xquantity,kX,Xdecomposition,mY,nY,Yquantity,Ydecomposition,getFileExtension(file),directory.getAbsolutePath());
         WAVE = new WaveletWAVE(normImg,kY,mX,nX,Xquantity,kX,Xdecomposition,mY,nY,Yquantity,Ydecomposition,getFileExtension(file),directory.getAbsolutePath());
     }
+
     public Image getsobelImg(){return SwingFXUtils.toFXImage(sobelImg,null);}
     private static String getFileExtension(File file) {
         String fileName = file.getName();
@@ -183,6 +188,7 @@ public class Veivlet {
         }
         return newMatrix;
     }
+
     abstract class Wavelet extends Thread{
         AtomicReference<BufferedImage> Wavelet = new AtomicReference<>();
         AtomicReference<BufferedImage> WaveletPorog = new AtomicReference<>();
@@ -193,8 +199,6 @@ public class Veivlet {
         int a = 3, Xquantity, Xdecomposition, Yquantity, Ydecomposition;
         int[] kY,mX,nX, kX, mY, nY;
         String fileExtention,Path;
-        //T1 - sobel
-        //TT - grab
         double SKOWavelet, SKOPorog, SKOGRAD_SKOSobel;
         double SNRGGWavelet, SNRGGPorog, SNRGGGrab;
         double SNRFWavelet, SNRFPorog, SNRFGrab;
@@ -368,10 +372,9 @@ public class Veivlet {
                 this.SKOWavelet = SKO(Wavelet.get(),GrabImg);
                 this.SKOPorog = SKO(WaveletPorog.get(),GrabImg);
                 this.SKOGRAD_SKOSobel = SKO(sobelImg,GrabImg);
-                this.SNRGGGrab = SNRGG(GrabImg);
+                this.SNRGGGrab = SNRGG(sobelImg);
                 this.SNRGGWavelet = SNRGG(Wavelet.get());
                 this.SNRGGPorog = SNRGG(WaveletPorog.get());
-                this.SNRGGGrab = SNRGG(GrabImg);
                 this.SNRFWavelet = SNRF(Wavelet.get(),30,5,50);
                 this.SNRFPorog = SNRF(WaveletPorog.get(),30,5,50);
                 save();
@@ -434,6 +437,7 @@ public class Veivlet {
         }//Среднеквадратичное отклонение
 
     }
+
     class WaveletDOG extends Wavelet{
 
 
@@ -463,6 +467,7 @@ public class Veivlet {
 
         }
     }
+
     class WaveletMHAT extends Wavelet{
 
 
@@ -491,6 +496,7 @@ public class Veivlet {
         }
 
     }
+
     class WaveletWAVE extends Wavelet {
 
 

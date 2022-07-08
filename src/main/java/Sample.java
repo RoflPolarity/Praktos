@@ -1,18 +1,17 @@
+import javafx.collections.ObservableList;
 import javafx.concurrent.Task;
-import javafx.event.EventHandler;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
 import javafx.scene.control.Button;
 import javafx.scene.control.Tab;
-import javafx.scene.control.TableView;
 import javafx.scene.control.TextField;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import javafx.stage.Modality;
 import javafx.stage.Stage;
-import javafx.stage.WindowEvent;
+import javafx.stage.StageStyle;
 
 import javax.swing.*;
 import java.io.File;
@@ -100,27 +99,28 @@ public class Sample {
             };
             new Thread(task).start();
         });
+        AtomicReference<Veivlet> main = new AtomicReference();
         run.setOnAction(event -> {
             run.setDisable(true);
             try {
                 long start = System.currentTimeMillis();
-                Veivlet main = new Veivlet(new String(files.get().getAbsolutePath().getBytes(), "windows-1251"));
+                main.set(new Veivlet(new String(files.get().getAbsolutePath().getBytes(), "windows-1251")));
             Task task = new Task<Void>(){
                     protected Void call() throws Exception{
                         DOGTAB.setDisable(true);
                         MHATTAB.setDisable(true);
                         WAVETAB.setDisable(true);
-                        main.Dog.join();
-                        main.MHAT.join();
-                        main.WAVE.join();
-                        DOGWavelet.setImage(main.Dog.getWavelet());
-                        DOGWaveletPorog.setImage(main.Dog.getWaveletPorog());
+                        main.get().Dog.join();
+                        main.get().MHAT.join();
+                        main.get().WAVE.join();
+                        DOGWavelet.setImage(main.get().Dog.getWavelet());
+                        DOGWaveletPorog.setImage(main.get().Dog.getWaveletPorog());
                         DOGTAB.setDisable(false);
-                        MHATWavelet.setImage(main.MHAT.getWavelet());
-                        MHATWaveletPorog.setImage(main.MHAT.getWaveletPorog());
+                        MHATWavelet.setImage(main.get().MHAT.getWavelet());
+                        MHATWaveletPorog.setImage(main.get().MHAT.getWaveletPorog());
                         MHATTAB.setDisable(false);
-                        WAVEWavelet.setImage(main.WAVE.getWavelet());
-                        WAVEWaveletPorog.setImage(main.WAVE.getWaveletPorog());
+                        WAVEWavelet.setImage(main.get().WAVE.getWavelet());
+                        WAVEWaveletPorog.setImage(main.get().WAVE.getWaveletPorog());
                         WAVETAB.setDisable(false);
                         long finish = System.currentTimeMillis() - start;
                         System.out.println(finish/1000);
@@ -130,7 +130,7 @@ public class Sample {
                         return null;
                     }
                 };
-                Sobel.setImage(main.getsobelImg());
+                Sobel.setImage(main.get().getsobelImg());
                 new Thread(task).start();
                 } catch (IOException e) {
                 e.printStackTrace();
@@ -138,7 +138,8 @@ public class Sample {
         });
         GetReport.setOnAction(event->{
                 try {
-                    Stage newStage = new Stage();
+                    report report = new report(main.get());
+                    Stage newStage = new Stage(StageStyle.UNDECORATED);
                     newStage.initModality(Modality.APPLICATION_MODAL);
                     Parent root = FXMLLoader.load(getClass().getResource("report.fxml"));
                     newStage.setTitle("");
