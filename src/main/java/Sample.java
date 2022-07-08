@@ -6,6 +6,7 @@ import javafx.scene.Parent;
 import javafx.scene.Scene;
 import javafx.scene.control.Button;
 import javafx.scene.control.Tab;
+import javafx.scene.control.TableView;
 import javafx.scene.control.TextField;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
@@ -139,9 +140,9 @@ public class Sample {
                 try {
                     Stage newStage = new Stage();
                     newStage.initModality(Modality.APPLICATION_MODAL);
-                    Parent root = FXMLLoader.load(getClass().getResource("src/main/resources/report.fxml"));
+                    Parent root = FXMLLoader.load(getClass().getResource("report.fxml"));
                     newStage.setTitle("");
-                    newStage.setScene(new Scene(root, 600, 400));
+                    newStage.setScene(new Scene(root, 600, 420));
                     newStage.setResizable(false);
                     newStage.show();
                 } catch (IOException e) {
