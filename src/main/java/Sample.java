@@ -138,10 +138,12 @@ public class Sample {
         });
         GetReport.setOnAction(event->{
                 try {
-                    report report = new report(main.get());
                     Stage newStage = new Stage(StageStyle.UNDECORATED);
                     newStage.initModality(Modality.APPLICATION_MODAL);
-                    Parent root = FXMLLoader.load(getClass().getResource("report.fxml"));
+                    FXMLLoader loader = new FXMLLoader(getClass().getResource("report.fxml"));
+                    Parent root = loader.load();
+                    report report = loader.getController();
+                    report.main = main.get();
                     newStage.setTitle("");
                     newStage.setScene(new Scene(root, 600, 420));
                     newStage.setResizable(false);

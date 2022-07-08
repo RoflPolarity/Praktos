@@ -5,9 +5,6 @@ import java.util.concurrent.atomic.AtomicInteger;
 
 public class report {
     Veivlet main;
-    public report(Veivlet main){
-        this.main = main;
-    }
     @FXML
     private Button exitButton;
 
