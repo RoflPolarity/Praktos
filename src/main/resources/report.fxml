@@ -13,7 +13,9 @@
          </font>
       </Label>
       <Button fx:id="nextButton" layoutX="540.0" layoutY="361.0" mnemonicParsing="false" onAction="#next" text="Далее" />
-      <Button fx:id="exitButton" layoutX="471.0" layoutY="361.0" mnemonicParsing="false" text="Выход" />
-      <Label fx:id="reportArea" layoutX="14.0" layoutY="39.0" text="Label" />
+      <Label fx:id="reportArea" layoutX="14.0" layoutY="39.0" prefHeight="310.0" prefWidth="576.0" text="Label">
+         <font>
+            <Font size="16.0" />
+         </font></Label>
    </children>
 </AnchorPane>

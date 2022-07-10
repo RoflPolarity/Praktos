@@ -201,7 +201,7 @@ public class Veivlet {
         String fileExtention,Path;
         double SKOWavelet, SKOPorog, SKOGRAD_SKOSobel;
         double SNRGGWavelet, SNRGGPorog, SNRGGGrab;
-        double SNRFWavelet, SNRFPorog, SNRFGrab;
+        float SNRFWavelet, SNRFPorog, SNRFGrab;
         public Wavelet(BufferedImage normalImage, int[] kY, int[] mX, int[] nX, int Xquantity, int[] kX, int Xdecomposition, int[] mY, int [] nY, int Yquantity, int Ydecomposition, String fileExtention, String path){
             this.normalImage = normalImage;
             this.kY = kY;
@@ -375,8 +375,8 @@ public class Veivlet {
                 this.SNRGGGrab = SNRGG(sobelImg);
                 this.SNRGGWavelet = SNRGG(Wavelet.get());
                 this.SNRGGPorog = SNRGG(WaveletPorog.get());
-                this.SNRFWavelet = SNRF(Wavelet.get(),30,5,50);
-                this.SNRFPorog = SNRF(WaveletPorog.get(),30,5,50);
+                this.SNRFWavelet = SNRF(Wavelet.get(),normalImage.getWidth()/5,5,50);
+                this.SNRFPorog = SNRF(WaveletPorog.get(),normalImage.getWidth()/5,5,50);
                 save();
             } catch (InterruptedException e) {
                 e.printStackTrace();
@@ -410,19 +410,21 @@ public class Veivlet {
             }
             return ((255-SS)/Math.sqrt(V/((mass.getHeight()-1)*(mass.getWidth()-1))));
         }//Пиковый сигнал/шум
-        protected double SNRF (BufferedImage pic, int i1, int j1, int NN){
+        protected float SNRF (BufferedImage pic, int i1, int j1, int NN){
             WritableRaster raster = pic.getRaster();
             double SS, SSF, VF;
             int summ = 0;
             for (int i = 0; i < pic.getHeight()-1; i++)for (int j = 0; j < pic.getWidth()-1; j++)summ += raster.getPixel(i,j, new int[3])[0];
-            SS=summ/(pic.getHeight()-1)*(pic.getWidth()-1);
+            SS=255-(summ/(pic.getHeight()-1)*(pic.getWidth()-1));
             summ = 0;
             for (int i = i1; i <= i1+NN; i++)for (int j = j1; j < j1+NN; j++)summ += raster.getPixel(i,j, new int[3])[0];
             SSF = (summ/Math.pow(NN,2));
             summ = 0;
-            for (int i = i1; i <=i1+NN; i++)for (int j = j1; j <=j1+NN ; j++)summ+= raster.getPixel(i,j,new int[3])[0] - Math.pow(SSF,2);
-            VF = summ/Math.pow(NN,2);
-            return (255-SS)/Math.sqrt(VF);
+            for (int i = i1; i <=i1+NN; i++)for (int j = j1; j <=j1+NN ; j++){
+                summ+= Math.pow(raster.getPixel(i,j,new int[3])[0] - SSF,2);
+            }
+            VF = Math.sqrt(summ/Math.pow(NN,2));
+            return (float) (SS/VF);
         }//Пиковый сигнал шум по СКО фона
         protected double SKO(BufferedImage pic, BufferedImage pic2){
             WritableRaster raster = pic.getRaster();

@@ -1,8 +1,7 @@
-import javafx.collections.ObservableList;
+import javafx.application.Platform;
 import javafx.concurrent.Task;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
-import javafx.scene.Node;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
 import javafx.scene.control.Button;
@@ -12,13 +11,11 @@ import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import javafx.stage.Modality;
 import javafx.stage.Stage;
-import javafx.stage.StageStyle;
 
 import javax.swing.*;
 import java.io.File;
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
-import java.time.temporal.ValueRange;
 import java.util.concurrent.atomic.AtomicReference;
 
 public class Sample {
@@ -71,7 +68,15 @@ public class Sample {
     private Button run;
 
     @FXML
+    private Button extBtn;
+
+    public void exit(){
+        System.exit(1);
+    }
+
+    @FXML
     void initialize(){
+        AtomicReference<Thread> JFS = new AtomicReference<>();
     Veivlet[] main = new Veivlet[1];
         AtomicReference<File> files = new AtomicReference<>();
         run.setDisable(true);
@@ -84,8 +89,8 @@ public class Sample {
                     JFrame frame = new JFrame();
                     JFileChooser JFC = new JFileChooser();
                     JFC.setFileSelectionMode(JFileChooser.FILES_ONLY);
-                    int result = JFC.showOpenDialog(frame);
                     frame.setDefaultCloseOperation(WindowConstants.EXIT_ON_CLOSE);
+                    int result = JFC.showOpenDialog(frame);
                     if (result == JFileChooser.APPROVE_OPTION ){
                         try {
                             prievue.setText(new String(JFC.getSelectedFile().getAbsolutePath().getBytes(), "windows-1251"));
@@ -99,9 +104,11 @@ public class Sample {
                     return null;
                 }
             };
-            new Thread(task).start();
+            JFS.set(new Thread(task));
+            JFS.get().start();
         });
         run.setOnAction(event -> {
+            System.out.println(JFS.get().isAlive());
             run.setDisable(true);
             try {
                 long start = System.currentTimeMillis();
@@ -146,7 +153,8 @@ public class Sample {
                     report report = loader.getController();
                     report.init(main[0]);
 
-                    Stage stage = (Stage)((Node)event.getSource()).getScene().getWindow();
+                    Stage stage = new Stage();
+                    stage.initModality(Modality.APPLICATION_MODAL);
                     Scene scene = new Scene(root);
                     stage.setScene(scene);
                     stage.show();
