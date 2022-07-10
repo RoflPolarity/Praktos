@@ -2,6 +2,7 @@ import javafx.collections.ObservableList;
 import javafx.concurrent.Task;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
+import javafx.scene.Node;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
 import javafx.scene.control.Button;
@@ -69,9 +70,9 @@ public class Sample {
     @FXML
     private Button run;
 
-
     @FXML
     void initialize(){
+    Veivlet[] main = new Veivlet[1];
         AtomicReference<File> files = new AtomicReference<>();
         run.setDisable(true);
         GetReport.setDisable(true);
@@ -100,7 +101,6 @@ public class Sample {
             };
             new Thread(task).start();
         });
-        Veivlet[] main = new Veivlet[1];
         run.setOnAction(event -> {
             run.setDisable(true);
             try {
@@ -139,19 +139,17 @@ public class Sample {
         });
         GetReport.setOnAction(event->{
                 try {
-                    Stage newStage = new Stage(StageStyle.UNDECORATED);
-                    newStage.initModality(Modality.APPLICATION_MODAL);
-
-                    report report = new report(main[0]);
 
                     FXMLLoader loader = new FXMLLoader(getClass().getResource("report.fxml"));
-                    loader.setController(report);
                     Parent root = loader.load();
 
-                    newStage.setTitle("");
-                    newStage.setScene(new Scene(root, 600, 420));
-                    newStage.setResizable(false);
-                    newStage.show();
+                    report report = loader.getController();
+                    report.init(main[0]);
+
+                    Stage stage = (Stage)((Node)event.getSource()).getScene().getWindow();
+                    Scene scene = new Scene(root);
+                    stage.setScene(scene);
+                    stage.show();
                 } catch (IOException e) {
                 e.printStackTrace();
             }
